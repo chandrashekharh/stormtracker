@@ -1,0 +1,24 @@
+{
+  "name": "stormtracker",
+  "version": "0.1.1",
+  "dependencies": {
+	  "dirty": "0.9.x",
+	  "request": "2.9.x",
+	  "json-schema": "0.2.0",
+	  "node-uuid": "1.3.x",
+	  "optimist":"0.6.0",
+	  "fileops":"0.1.3"
+  },
+  "engines": {
+    "node": ">=0.10.x"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "author": "Devanand Reddy",
+  "description": "A new nexus in the sleeves of a node.js.",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "main": "./lib/bolt.coffee"
+}
