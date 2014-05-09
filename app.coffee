@@ -12,14 +12,17 @@ else
 	console.log(clc.red("Global configuration not found. Can't start application"))
 	process.exit(1)
 
+passport = require("passport")
+passport.use require("auth/auth").BasicStrategy
+
 {@app} = require("zappajs")  GLOBAL.config.port,->
 	@configure =>
-		@use "bodyParser", "methodOverride", @app.router, "static"
+		@use "bodyParser", "methodOverride",passport.initialize(), @app.router, "static"
 		@set "basepath": "/v1.0"
 
 	@configure
 		development: => @use errorHandler: {dumpExceptions: on, showStack: on}
-		production: => @use "errorHandler"
+		production: => @use errorHandler
 
 	@include "./lib/http/certs"
 	@include "./lib/http/agents"

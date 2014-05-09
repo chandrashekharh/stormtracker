@@ -2,7 +2,8 @@ jsonschema = require("json-schema")
 uuid = require("uuid")
 CertificateManager = require("http/certs").CertificateManager
 query = require("dirty-query").query
-
+db = require("util/db")
+auth = require("auth/auth").authenticate
 
 agentSchema =
 	name : "Agent"
@@ -11,6 +12,7 @@ agentSchema =
 	properties :
 		id: {"type":"string","required":false}
 		serialKey: {"type":"string","required":false}
+		password :{"type":"string","required":false}
 		stormbolt:
 			type: "object"
 			required: true
@@ -44,7 +46,7 @@ class AgentManager
 	constructor : ->
 		@agentSchema = agentSchema
 		@CM = new CertificateManager "config", "temp"
-		@db = require("dirty") GLOBAL.config.agentDB
+		@db = db.agents()
 		This = this
 		@stormsigner = GLOBAL.config.stormsigner.id
 
@@ -99,12 +101,13 @@ class AgentManager
 		catch error
 			@response.send 400, error
 
-	@put "agents/:id" : ->
+	@put "agents/:id",auth, ->
 		try
 			if AM.validate @body
 				@send AM.update @body
 		catch error
 			@response.send 400, error
+
 	@put "agents/:id/status/:status" : ->
 		agent = @db.get @params.id
 		if agent?
@@ -113,14 +116,14 @@ class AgentManager
 			@send 404
 		@send 204 #Just did it, but no return content
 
-	@get "agents/:id" : ->
+	@get "agents/:id", auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
 			@send agent
 			return
 		@send 404
 
-	@get "agents/serialKey/:key" : ->
+	@get "agents/serialKey/:key",auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
 			agent.cabundle.encoding = "base64"
@@ -129,7 +132,7 @@ class AgentManager
 			return
 		@send 404
 
-	@post "agents/:id/csr" : ->
+	@post "agents/:id/csr", auth, ->
 		if AM.getAgent @params.id
 			csrData = @body.data
 			csrRequest =
@@ -142,7 +145,7 @@ class AgentManager
 				Response.send {"encoding": "base64", "data": new Buffer(cert.cert).toString("base64")}
 		@send 404
 
-	@del "agents/:id" : ->
+	@del "agents/:id", auth : ->
 		if (@db.get @params.id)?
 			@db.rm @params.id
 			@send 204

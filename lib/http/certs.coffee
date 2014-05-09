@@ -1,15 +1,16 @@
 certainly = require("security/certainly")
 uuid = require("uuid")
 Certificate = require("security/certificate").Certificate
+db = require("util/db")
+auth = require("auth/auth").authenticate
 
 class CertificateManager
 	This = null
 
 	constructor: (config,temp) ->
-		@db = require("dirty") GLOBAL.config.certsDB
+		@db = db.certs()
 		certainly.init config, temp
 		This = this
-
 
 	loadSigners: (cert) ->
 		root = cert
@@ -106,26 +107,27 @@ class CertificateManager
 						callback null, cert
 
 
+passport = require("passport")
 
 
 @include = ->
 	CM = new CertificateManager()
 	certificate = new Certificate()
-	Send = @send
-	Response = @response
 
 	@post "/cert" : ->
+		Response = @response
 		try
 			if certificate.validate @body
-				CM.create @body, (err,cert)->
-					Response.send 400,err if err?
-					Send cert
+				CM.create @body, (err,cert)=>
+					return @response.send 400,err if err?
+					@response.send cert
 		catch error
 			@response.send 400, error
 			# @next error
 
-	@get "/cert" : ->
+	@get "/cert", auth, ->
 		@send CM.list()
+
 
 	@get "/cert/:id/signerBundle" : ->
 		bundle = CM.signerBundle @params.id

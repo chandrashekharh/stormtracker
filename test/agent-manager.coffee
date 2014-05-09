@@ -4,8 +4,10 @@ fs = require("fs")
 DEFAULT_CONFIG = "stormtracker.json"
 
 GLOBAL.config = JSON.parse fs.readFileSync process.cwd()+"/"+DEFAULT_CONFIG
+
 agent =
 	serialKey : uuid.v4()
+	password : uuid.v4()
 	stormbolt :
 		state : "ACTIVE"
 		servers : ["bolt://testserver"]

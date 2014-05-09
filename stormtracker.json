@@ -5,5 +5,5 @@
 	"daysValidFor": 1800
     },
     "certsDB":"/tmp/certs.db",
-    "agentDB":"/tmp/agents.db"
+    "agentsDB":"/tmp/agents.db"
 }
