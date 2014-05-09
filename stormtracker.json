@@ -1,0 +1,9 @@
+{
+    "port" : 5000,
+    "stormsigner" : {
+	"id":"someid",
+	"daysValidFor": 1800
+    },
+    "certsDB":"/tmp/certs.db",
+    "agentDB":"/tmp/agents.db"
+}

@@ -53,7 +53,6 @@ genConfig = (options, callback) ->
 		confTemplate = confTemplate.toString().replace /%%BASIC_CONSTRAINTS%%/g, (if options.CA? and options.CA then "CA:TRUE" else "CA:FALSE")
 		confTemplate = confTemplate.toString().replace /CA:TRUE/g, (if options.pathlen? and options.pathlen > -1 then "CA:TRUE,pathlen:#{options.pathlen}" else "CA:TRUE")
 		confFile = TEMP_DIR+"/#{randFile()}"
-
 		fs.writeFile confFile, confTemplate, (err) ->
 			return callback(err) if err?
 			callback null, confFile
@@ -120,7 +119,7 @@ selfSign = (reqArgs, certFile, keyFile, confFile, callback) ->
 	cmd = "openssl req " + reqArgs.join(" ")
 	exec cmd, (err, stdout, stderr) ->
 		fs.unlink confFile
-		if err
+		if err?
 			fs.unlink certFile
 			fs.unlink keyFile
 			return callback err

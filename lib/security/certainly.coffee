@@ -19,31 +19,30 @@ genCA = (certRequest,callback) ->
 	if err =  notPresent certRequest, ["subject", "daysValidFor"]
 		throw Error("You must supply subject & daysValidFor")
 	subject = certRequest.subject
-
 	certgen.genSelfSigned subject, certRequest.daysValidFor, (err, key, cert)->
-		throw err if err?
+		return callback err if err?
 		certRequest.privateKey = key.toString()
 		certRequest.cert = cert.toString()
 		certRequest.selfSigned = true
 		# delete subject.id
-		callback(certRequest)
+		callback null,certRequest
 
 
 genKey = (certRequest,callback) ->
 	certgen.genKey (err, privateKey) ->
-		throw err if err?
+		return callback err if err?
 		certRequest.privateKey = privateKey.toString()
-		callback(certRequest)
+		callback null, certRequest
 
 newCSR = (certRequest,callback) ->
 	if error = notPresent certRequest, ["subject","privateKey"]
-		throw Error("You must supply a subject and privateKey")
+		return callback Error("You must supply a subject and privateKey")
 	certgen.genCSR certRequest.privateKey, certRequest.subject, (err, csr) ->
-		throw err if err?
+		return callback err if err?
 		result =
 			signee:	certRequest
 			csr: csr.toString()
-		callback(result)
+		callback null,result
 
 signCSR = (csrRequest,callback) ->
 	caCert=caKey=""
@@ -63,20 +62,20 @@ genCABundle = (certificate) ->
 
 pkcs12 = (certRequest,callback) ->
 	unless certRequest.certificate? and certRequest.caBundle?
-		throw Error("You must supply a certificate and caBundle.")
+		return callback Error("You must supply a certificate and caBundle.")
 	ca = certRequest.caBundle
 	certificate = certRequest.certificate;
 	puts ca
 	if certificate.privateKey?
 		certgen.pkcs12 certificate.privateKey, certificate.cert, ca, certificate.subject.CN, (err, pkcs)->
-			throw err if err?
+			return callback err if err?
 			certRequest.certificate.pkcs12 = pkcs.toString("base64")
-			outCertRequest = certRequest
+			callback null,certRequest
 	else
 		certgen.pcs12 certificate.cert, ca, certificate.subject.CN, (err, pkcs)->
 			throw err if err?
 			certRequest.certificate.pkcs12 = pkcs.toString("base64")
-			callback(certRequest)
+			callback null,certRequest
 
 
 sign = (certRequest, callback) ->
@@ -84,7 +83,7 @@ sign = (certRequest, callback) ->
 		return reporterror response, "You must supply a #{error}"
 	certgen.sign certRequest.cert, certRequest.privateKey, certRequest.ca, new Buffer(certRequest.message, "base64"), (error, results) ->
 	puts results.toString("base64")
-	callback {result:results.toString("base64")}
+	callback null, {result:results.toString("base64")}
 
 
 exports.genCA = genCA

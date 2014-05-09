@@ -20,5 +20,5 @@
     "type": "git",
     "url": ""
   },
-  "main": "./lib/bolt.coffee"
+  "main": "./lib/app.coffee"
 }
