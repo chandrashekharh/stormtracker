@@ -5,12 +5,10 @@ db = require("util/db")
 auth = require("auth/auth").authenticate
 
 class CertificateManager
-	This = null
 
 	constructor: (config,temp) ->
 		@db = db.certs()
 		certainly.init config, temp
-		This = this
 
 	loadSigners: (cert) ->
 		root = cert
@@ -78,9 +76,9 @@ class CertificateManager
 
 
 	signCSR: (csr, callback) ->
-		certainly.signCSR csr, (err, cert) ->
+		certainly.signCSR csr, (err, cert) =>
 			return callback err if err?
-			cert = This.unloadSigners cert
+			cert = @unloadSigners cert
 			callback null, cert
 
 	create: (cert,callback) ->
@@ -88,22 +86,22 @@ class CertificateManager
 		if cert.selfSigned
 			cert.signer=""
 			console.log "Creating self signed cert"
-			certainly.genCA cert, (err,cert) ->
+			certainly.genCA cert, (err,cert) =>
 				return callback err if err?
-				This.db.set cert.id,cert
+				@db.set cert.id,cert
 				callback null,cert
 		else
 			console.log "Creating signed cert by "+cert.signer
-			certainly.genKey cert,(err,ocert) ->
+			certainly.genKey cert,(err,ocert) =>
 				return callback err if err?
-				ocert = This.loadSigners ocert
-				certainly.newCSR ocert,(err,csr) ->
+				ocert = @loadSigners ocert
+				certainly.newCSR ocert,(err,csr) =>
 					return callback err if err?
 					csr.signer = ocert.signer
-					certainly.signCSR csr,(err,cert)->
+					certainly.signCSR csr,(err,cert)=>
 						return callback err if err?
-						cert = This.unloadSigners cert
-						This.db.set cert.id, cert
+						cert = @unloadSigners cert
+						@db.set cert.id, cert
 						callback null, cert
 
 
@@ -111,7 +109,7 @@ passport = require("passport")
 
 
 @include = ->
-	CM = new CertificateManager()
+	CM = new CertificateManager(GLOBAL.config.folders.config,GLOBAL.config.folders.tmp)
 	certificate = new Certificate()
 
 	@post "/cert" : ->

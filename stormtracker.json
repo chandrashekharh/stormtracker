@@ -1,9 +1,13 @@
 {
     "port" : 5000,
     "stormsigner" : {
-	"id":"someid",
+	"id":"9bd83223-73e2-4227-97f9-8392b7da127f",
 	"daysValidFor": 1800
     },
     "certsDB":"/tmp/certs.db",
-    "agentsDB":"/tmp/agents.db"
+    "agentsDB":"/tmp/agents.db",
+    "folders":{
+	"tmp":"temp",
+	"config":"config"
+    }
 }

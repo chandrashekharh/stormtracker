@@ -42,12 +42,10 @@ agentSchema =
 
 
 class AgentManager
-	This = null
 	constructor : ->
 		@agentSchema = agentSchema
 		@CM = new CertificateManager "config", "temp"
 		@db = db.agents()
-		This = this
 		@stormsigner = GLOBAL.config.stormsigner.id
 
 	update : (id,agent) ->
@@ -65,10 +63,7 @@ class AgentManager
 		return agent
 
 	getAgent : (id) ->
-		agent =  @db.get id
-		if agent?
-			return agent
-		return ""
+		@db.get id
 
 	getAgentBySerial : (serialKey) ->
 		agents = query @db, {"serialKey":serialKey}
@@ -87,6 +82,11 @@ class AgentManager
 		throw error unless result.valid
 		return result.valid
 
+	loadCaBundle: (agent) ->
+		agent.stormbolt.cabundle =
+			encoding : "base64"
+			data : new Buffer(@CM.signerBundle @stormsigner).toString("base64")
+		agent
 
 @include = ->
 	AM = new AgentManager()
@@ -95,20 +95,18 @@ class AgentManager
 		try
 			if AM.validate @body
 				agent =  AM.create @body
-				agent.cabundle.encoding = "base64"
-				agent.cabundle.data = new Buffer(CM.signerBundle signerId).toString(agent.cabundle.encoding)
-				@send agent
+				@send AM.loadCaBundle(agent)
 		catch error
 			@response.send 400, error
 
-	@put "agents/:id",auth, ->
+	@put "/agents/:id",auth, ->
 		try
 			if AM.validate @body
 				@send AM.update @body
 		catch error
 			@response.send 400, error
 
-	@put "agents/:id/status/:status" : ->
+	@put "/agents/:id/status/:status" : ->
 		agent = @db.get @params.id
 		if agent?
 			agent.status = @params.status
@@ -116,36 +114,43 @@ class AgentManager
 			@send 404
 		@send 204 #Just did it, but no return content
 
-	@get "agents/:id", auth, ->
+	@get "/agents/:id", auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
-			@send agent
-			return
-		@send 404
+			@send AM.loadCaBundle(agent)
+		else
+			@send 404
 
-	@get "agents/serialKey/:key",auth, ->
+	@get "/agents/:id/bolt", auth, ->
+		agent = AM.getAgent @params.id
+		if agent?
+			@send AM.loadCaBundle(agent).stormbolt
+		else
+			@send 404
+
+	@get "/agents/serialKey/:key",auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
-			agent.cabundle.encoding = "base64"
-			agent.cabundle.data = new Buffer(CM.signerBundle signerId).toString(agent.cabundle.encoding)
-			@send agent
-			return
-		@send 404
+			@send AM.loadCaBundle(agent)
+		else
+			@send 404
 
-	@post "agents/:id/csr", auth, ->
-		if AM.getAgent @params.id
-			csrData = @body.data
+	@post "/agents/:id/csr", auth, ->
+		console.log "CSR for agent #{@params.id}"
+		if (AM.getAgent @params.id)?
+			csrData = new Buffer(@body.data,@body.encoding).toString()
 			csrRequest =
 				csr : csrData
 				signee :
 					"daysValidFor": GLOBAL.config.stormsigner.daysValidFor
-				signer : CM.get @stormsigner
-			CM.signCSR csrRequest, (err,cert) ->
-				Response.send 400 if err?
-				Response.send {"encoding": "base64", "data": new Buffer(cert.cert).toString("base64")}
-		@send 404
+				signer : AM.CM.get AM.stormsigner
+			AM.CM.signCSR csrRequest, (err,cert) =>
+				@response.send 400 if err?
+				@response.send {"encoding": "base64", "data": new Buffer(cert.cert).toString("base64")}
+		else
+			@send 404
 
-	@del "agents/:id", auth : ->
+	@del "/agents/:id", auth : ->
 		if (@db.get @params.id)?
 			@db.rm @params.id
 			@send 204

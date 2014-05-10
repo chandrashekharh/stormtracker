@@ -49,8 +49,8 @@ describe "CertificateManager", ->
 				signedCert = clone(cert)
 				signedCert.selfSigned = false
 				signedCert.signer = cert.id
-				signedCert.subject.emailAddress = "gdr@clearpathnet.com"
-				signedCert.subject.CN = "gdr@clearpathnet.com"
+				signedCert.subject.emailAddress = "stormtracker@clearpathnet.com"
+				signedCert.subject.CN = "stormtracker@clearpathnet.com"
 				signedCert.subject.nsComment = "UUID:"+uuid.v4()
 				signedCert.privateKey = ""
 				signedCert.cert = ""

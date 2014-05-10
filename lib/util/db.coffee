@@ -1,10 +1,13 @@
 dirty = require("dirty")
 
 
-agents = ->
-	dirty  GLOBAL.config.agentsDB
 certs = ->
-	dirty GLOBAL.config.certsDB
+	if GLOBAL.config?
+		dirty GLOBAL.config.certsDB
+
+agents = ->
+	if GLOBAL.config?
+		dirty  GLOBAL.config.agentsDB
 
 exports.agents = agents
 exports.certs = certs
