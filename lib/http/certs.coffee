@@ -3,6 +3,27 @@ uuid = require("uuid")
 Certificate = require("security/certificate").Certificate
 db = require("util/db")
 auth = require("auth/auth").authenticate
+util = require "util"
+
+
+class CertificateFactory
+	constructor:->
+		@db = db.certs()
+		@CM = new CertificateManager GLOBAL.config.folders.config, GLOBAL.config.folders.tmp
+
+	init: ()->
+		@db.on "load", =>
+			stormsigner = @db.get GLOBAL.config.stormsigner
+			if stormsigner?
+				util.log "Signer chain already exists..skipping creation"
+				return
+			else
+				signerChain = GLOBAL.config.signerChain
+				rootCert = @CM.blankCert "root@clearpathnet.com","email:copy","StormTracker Root Signer", signerChain.days,true,true
+				rootCert.id= GLOBAL.config.stormsigner
+				@CM.create rootCert, (err,cert)->
+					util.log JSON.stringify err if err?
+					util.log "Signer chain created"
 
 class CertificateManager
 
@@ -55,7 +76,7 @@ class CertificateManager
 		else
 			return null
 
-	blankCert : (email,SAN,CN,days,isCA) ->
+	blankCert : (email,SAN,CN,days,isCA,selfSigned) ->
 		return	certobj =
 					"subject":
 						"emailAddress": email
@@ -70,7 +91,7 @@ class CertificateManager
 						"L": "El Segundo"
 						"ST": "CA"
 					"daysValidFor": days
-					"selfSigned": false
+					"selfSigned": selfSigned
 					"upstream" : false
 					"downstream" : false
 
@@ -82,7 +103,6 @@ class CertificateManager
 			callback null, cert
 
 	create: (cert,callback) ->
-		cert.id = uuid.v4()
 		if cert.selfSigned
 			cert.signer=""
 			console.log "Creating self signed cert"
@@ -162,4 +182,8 @@ passport = require("passport")
 		else
 			@send 404
 
+
+
+
 exports.CertificateManager = CertificateManager
+exports.CertificateFactory = CertificateFactory

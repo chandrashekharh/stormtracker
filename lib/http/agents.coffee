@@ -4,6 +4,7 @@ CertificateManager = require("http/certs").CertificateManager
 query = require("dirty-query").query
 db = require("util/db")
 auth = require("auth/auth").authenticate
+util = require "util"
 
 agentSchema =
 	name : "Agent"
@@ -11,6 +12,7 @@ agentSchema =
 	additionalProperties : true
 	properties :
 		id: {"type":"string","required":false}
+		stoken: {"type":"string","required":true}
 		serialKey: {"type":"string","required":false}
 		password :{"type":"string","required":false}
 		stormbolt:
@@ -46,7 +48,7 @@ class AgentManager
 		@agentSchema = agentSchema
 		@CM = new CertificateManager "config", "temp"
 		@db = db.agents()
-		@stormsigner = GLOBAL.config.stormsigner.id
+		@stormsigner = GLOBAL.config.stormsigner
 
 	update : (id,agent) ->
 		agent = @db.get id
@@ -57,9 +59,8 @@ class AgentManager
 			@db.set agent.id, agent
 
 	create : (agent) ->
-		if @validate agent
-			agent.id = uuid.v4()
-			@db.set agent.id, agent
+		agent.id = uuid.v4()
+		@db.set agent.id, agent
 		return agent
 
 	getAgent : (id) ->
@@ -87,6 +88,7 @@ class AgentManager
 			encoding : "base64"
 			data : new Buffer(@CM.signerBundle @stormsigner).toString("base64")
 		agent
+
 
 @include = ->
 	AM = new AgentManager()
@@ -142,7 +144,7 @@ class AgentManager
 			csrRequest =
 				csr : csrData
 				signee :
-					"daysValidFor": GLOBAL.config.stormsigner.daysValidFor
+					"daysValidFor": GLOBAL.config.signerChain.days
 				signer : AM.CM.get AM.stormsigner
 			AM.CM.signCSR csrRequest, (err,cert) =>
 				@response.send 400 if err?

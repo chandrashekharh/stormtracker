@@ -1,28 +1,19 @@
-# default configuration will be in /etc/stormstack/stormtracker.json
-fs = require("fs")
-DEFAULT_PATH =  "/etc/stormstack"
-DEFAULT_CONFIG = "stormtracker.json"
+config = require('./package').config
+GLOBAL.config = config
 
-if fs.existsSync DEFAULT_PATH+"/"+DEFAULT_CONFIG
-	GLOBAL.config = JSON.parse fs.readFileSync DEFAULT_PATH+"/"+DEFAULT_CONFIG
-else if fs.existsSync process.cwd()+"/"+ DEFAULT_CONFIG
-	GLOBAL.config = JSON.parse fs.readFileSync process.cwd()+"/"+DEFAULT_CONFIG
-else
-	clc = require("cli-color")
-	console.log(clc.red("Global configuration not found. Can't start application"))
-	process.exit(1)
+require("passport").use require("auth/auth").BasicStrategy
 
-passport = require("passport")
-passport.use require("auth/auth").BasicStrategy
+StormAgent = require "stormagent"
 
-{@app} = require("zappajs")  GLOBAL.config.port,->
-	@configure =>
-		@use "bodyParser", "methodOverride",passport.initialize(), @app.router, "static"
-		@set "basepath": "/v1.0"
+tracker = new StormAgent(config)
+tracker.on "ready", ->
+	CertificateFactory = require("http/certs").CertificateFactory
+	new CertificateFactory().init()
+	@include require("./lib/http/agents")
+	@include require("./lib/http/certs")
 
-	@configure
-		development: => @use errorHandler: {dumpExceptions: on, showStack: on}
-		production: => @use errorHandler
+tracker.on "active", (storm)->
+	@log "firing up stormbolt"
 
-	@include "./lib/http/certs"
-	@include "./lib/http/agents"
+
+tracker.run()

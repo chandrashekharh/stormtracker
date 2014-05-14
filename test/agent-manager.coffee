@@ -4,12 +4,11 @@ uuid = require("uuid")
 fs = require("fs")
 certainly = require("security/certainly")
 HttpClient = require("../lib/http/client").HttpClient
-DEFAULT_CONFIG = "stormtracker.json"
 
-GLOBAL.config = JSON.parse fs.readFileSync process.cwd()+"/"+DEFAULT_CONFIG
-
+GLOBAL.config = require('../package').config
 agent =
 	serialKey : "serial"
+	stoken :"sometoken"
 	password : "password"
 	stormbolt :
 		state : "ACTIVE"
@@ -25,15 +24,22 @@ cm = new CertificateManager("config","temp")
 client = new HttpClient "localhost",5000
 describe "AgentManager", ->
 
-	describe "create()", ->
-		it "Must create the agent object", (done)->
+	# describe "create()", ->
+	#	it "Must create the agent object", (done)->
+	#		headers = {}
+	#		client.post "/agents",agent,headers,(response)->
+	#			assert.equal response.password,"password"
+	#			agent.id = response.id
+	#			done()
+
+	describe "getAgent()", ->
+		before (done)->
 			headers = {}
 			client.post "/agents",agent,headers,(response)->
 				assert.equal response.password,"password"
 				agent.id = response.id
 				done()
 
-	describe "getAgent()", ->
 		it "Must list the objects of agent", (done)->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="
@@ -43,7 +49,14 @@ describe "AgentManager", ->
 					assert.equal response.stormbolt.cabundle.encoding,"base64"
 					done()
 
+
 	describe "getAgentBySerial()", (done)->
+		before (done)->
+			headers = {}
+			client.post "/agents",agent,headers,(response)->
+				assert.equal response.password,"password"
+				agent.id = response.id
+				done()
 		it "Must get the object via serialKey", ->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="
@@ -69,6 +82,12 @@ describe "AgentManager", ->
 						done()
 
 	describe "getBoltConfig()",->
+		before (done)->
+			headers = {}
+			client.post "/agents",agent,headers,(response)->
+				assert.equal response.password,"password"
+				agent.id = response.id
+				done()
 		it "Get the bolt config", (done) ->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="

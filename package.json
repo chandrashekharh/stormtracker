@@ -12,8 +12,8 @@
       "cli-color" : "0.3.x",
       "dirty" : "0.9.x",
       "dirty-query" : "0.1.x",
-      "log4js" : "0.6.x"
-
+      "log4js" : "0.6.x",
+      "stormagent" :"0.1.x"
   },
   "engines": {
     "node": ">=0.10.x"
@@ -26,5 +26,20 @@
     "type": "git",
     "url": ""
   },
-  "main": "./lib/app.coffee"
+    "main": "./lib/app.coffee",
+    "config":{
+	"port" : 5000,
+	"stormsigner" :"stormtracker",
+	"signerChain":{
+	    "CN":"stormtracker",
+	    "selfSigned":true,
+	    "days": 1800
+	},
+	"certsDB":"/tmp/certs.db",
+	"agentsDB":"/tmp/agents.db",
+	"folders":{
+	    "tmp":"temp",
+	    "config":"config"
+	}
+}
 }
