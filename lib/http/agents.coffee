@@ -51,12 +51,12 @@ class AgentManager
 		@stormsigner = GLOBAL.config.stormsigner
 
 	update : (id,agent) ->
-		agent = @db.get id
-		if not agent?
+		_agent = @db.get id
+		if not _agent?
 			return null
 
 		if @validate agent
-			@db.set agent.id, agent
+			@db.set _agent.id, agent
 
 	create : (agent) ->
 		agent.id = uuid.v4()
@@ -104,7 +104,7 @@ class AgentManager
 	@put "/agents/:id",auth, ->
 		try
 			if AM.validate @body
-				@send AM.update @body
+				@send AM.update @body.id,@body
 		catch error
 			@response.send 400, error
 
@@ -112,9 +112,10 @@ class AgentManager
 		agent = @db.get @params.id
 		if agent?
 			agent.status = @params.status
+			AM.update @params.id, agent
 		else
 			@send 404
-		@send 204 #Just did it, but no return content
+		@send 204 #Just updated, but no return content
 
 	@get "/agents/:id", auth, ->
 		agent = AM.getAgent @params.id

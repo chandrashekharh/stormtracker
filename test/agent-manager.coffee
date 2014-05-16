@@ -18,10 +18,14 @@ agent =
 			retry : 2000
 		loadbalance :
 			algorithm : "roundrobin"
+		cabundle:
+			encoding:"base64"
+			data :"base64 encoded certificate"
 
 assert = require("assert")
 cm = new CertificateManager("config","temp")
 client = new HttpClient "localhost",5000
+
 describe "AgentManager", ->
 
 	# describe "create()", ->
