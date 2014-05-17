@@ -28,7 +28,7 @@
   },
     "main": "./lib/app.coffee",
     "config":{
-	"port" : 5000,
+	"port" : 8123,
 	"stormsigner" :"stormtracker",
 	"signerChain":{
 	    "CN":"stormtracker",
@@ -40,6 +40,13 @@
 	"folders":{
 	    "tmp":"temp",
 	    "config":"config"
-	}
+	},
+	"scripts": {
+		"prepublish": "find src -name '*.coffee' | xargs coffee -o lib -c",
+		"start": "node lib/app.js"
+	},
+	"contributors": [
+		""
+        ]
 }
 }
