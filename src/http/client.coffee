@@ -16,8 +16,10 @@ class HttpClient
 				ctype = result.headers["content-type"].split(";")
 				if ctype[0].trim() is "application/json"
 					body = JSON.parse body
-					callback body if callback?
-					)
+					callback null, body if callback?
+			result.on "error",(error)->
+				callback error,null
+				)
 
 	post:(path, data,headers, callback = ->) ->
 		this.send path, data, headers, "POST", callback
@@ -42,7 +44,9 @@ class HttpClient
 				ctype = result.headers["content-type"].split(";")
 				if "application/json" is ctype[0].trim()
 					body = JSON.parse body
-					callback body
+					callback null, body
+			result.on "error",(error)->
+				callback error,null
 			)
 		request.write JSON.stringify data if data
 		request.end()

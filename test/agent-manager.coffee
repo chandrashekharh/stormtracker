@@ -9,7 +9,6 @@ GLOBAL.config = require('../package').config
 agent =
 	serialKey : "serial"
 	stoken :"sometoken"
-	password : "password"
 	stormbolt :
 		state : "ACTIVE"
 		servers : ["bolt://testserver"]
@@ -40,16 +39,16 @@ describe "AgentManager", ->
 		before (done)->
 			headers = {}
 			client.post "/agents",agent,headers,(response)->
-				assert.equal response.password,"password"
+				assert.equal response.serialKey,"serial"
 				agent.id = response.id
 				done()
 
 		it "Must list the objects of agent", (done)->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="
-			client.post "/agents",agent,headers,(response)->
-				assert.equal response.password,"password"
-				client.get "/agents/"+response.id,headers,(response) ->
+			client.post "/agents",agent,headers,(err,response)->
+				assert.equal response.serialKey,"serial"
+				client.get "/agents/"+response.id,headers,(err,response) ->
 					assert.equal response.stormbolt.cabundle.encoding,"base64"
 					done()
 
@@ -57,14 +56,14 @@ describe "AgentManager", ->
 	describe "getAgentBySerial()", (done)->
 		before (done)->
 			headers = {}
-			client.post "/agents",agent,headers,(response)->
-				assert.equal response.password,"password"
+			client.post "/agents",agent,headers,(err,response)->
+				assert.equal response.serialKey,"serial"
 				agent.id = response.id
 				done()
 		it "Must get the object via serialKey", ->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="
-			client.get "/agents/serialKey/#{agent.serialKey}",headers,(response)->
+			client.get "/agents/serialKey/#{agent.serialKey}",headers,(err,response)->
 				assert.equal agent.serialKey,response.serialKey
 
 	describe "signCSR()", ->
@@ -80,7 +79,7 @@ describe "AgentManager", ->
 					cabundle =
 						encoding:"base64"
 						data:new Buffer(csrRequest.csr).toString("base64")
-					client.post "/agents/#{agent.id}/csr",cabundle,headers,(response)->
+					client.post "/agents/#{agent.id}/csr",cabundle,headers,(err,response)->
 						assert.equal response.encoding,"base64"
 						assert.notEqual response.data,""
 						done()
@@ -88,14 +87,14 @@ describe "AgentManager", ->
 	describe "getBoltConfig()",->
 		before (done)->
 			headers = {}
-			client.post "/agents",agent,headers,(response)->
-				assert.equal response.password,"password"
+			client.post "/agents",agent,headers,(err,response)->
+				assert.equal response.serialKey,"serial"
 				agent.id = response.id
 				done()
 		it "Get the bolt config", (done) ->
 			headers =
 				"Authorization" : "Basic YWdlbnQwMDc6cGFzc3dvcmQ="
 
-			client.get "/agents/#{agent.id}/bolt",headers,(response) ->
+			client.get "/agents/#{agent.id}/bolt",headers,(err,response) ->
 				assert.equal response.cabundle.encoding,"base64"
 				done()

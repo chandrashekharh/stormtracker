@@ -3,7 +3,7 @@ uuid = require("uuid")
 CertificateManager = require("http/certs").CertificateManager
 query = require("dirty-query").query
 db = require("util/db")
-auth = require("auth/auth").authenticate
+auth = require("http/auth").authorization
 util = require "util"
 
 agentSchema =
@@ -14,7 +14,9 @@ agentSchema =
 		id: {"type":"string","required":false}
 		stoken: {"type":"string","required":true}
 		serialKey: {"type":"string","required":false}
-		password :{"type":"string","required":false}
+		server_port: {"type":"number","required":false}
+		proxy_listen_port: {"type":"number","required":false}
+		local_forwarding_ports: {"type":"number","required":false}
 		stormbolt:
 			type: "object"
 			required: true

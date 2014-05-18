@@ -2,7 +2,7 @@ certainly = require("security/certainly")
 uuid = require("uuid")
 Certificate = require("security/certificate").Certificate
 db = require("util/db")
-auth = require("auth/auth").authenticate
+auth = require("http/auth").authenticate
 util = require "util"
 
 
