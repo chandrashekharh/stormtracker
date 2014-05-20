@@ -1,45 +1,69 @@
 {
-  "name": "stormtracker",
-  "version": "0.1.1",
-  "dependencies": {
-      "dirty": "0.9.x",
-      "request": "2.9.x",
-      "json-schema": "0.2.0",
-      "node-uuid": "1.4.x",
-      "passport" :"0.2.x",
-      "passport-http" :"0.2.x",
-      "zappajs" : "0.4.x",
-      "cli-color" : "0.3.x",
-      "dirty" : "0.9.x",
-      "dirty-query" : "0.1.x",
-      "log4js" : "0.6.x",
-      "stormagent" :"0.1.x"
-  },
-  "engines": {
-    "node": ">=0.10.x"
-  },
-  "devDependencies": {"mocha" : "1.18.x"},
-  "optionalDependencies": {},
-  "author": "Devanand Reddy",
-  "description": "A new nexus in the sleeves of a node.js.",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-    "main": "./lib/app.coffee",
-    "config":{
-	"port" : 5000,
-	"stormsigner" :"stormtracker",
-	"signerChain":{
-	    "CN":"stormtracker",
-	    "selfSigned":true,
-	    "days": 1800
+    "name": "stormtracker",
+    "description": "A new nexus in the sleeves of a node.js.",
+    "version": "0.1.2",
+    "author": "Devanand Reddy",
+	"homepage": "http://stormstack.org",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/stormstack/stormtracker.git"
+    },
+    "dependencies": {
+        "stormagent" :"0.1.x",
+        "dirty": "0.9.x",
+        "request": "2.9.x",
+        "json-schema": "0.2.0",
+        "node-uuid": "1.4.x",
+        "passport" :"0.2.x",
+        "passport-http" :"0.2.x",
+        "zappajs" : "0.4.x",
+        "cli-color" : "0.3.x",
+        "dirty" : "0.9.x",
+        "dirty-query" : "0.1.x",
+        "log4js" : "0.6.x"
+    },
+    "devDependencies": {
+		"coffee-script": ">=1.3",
+		"mocha" : "1.18.x"
 	},
-	"certsDB":"/tmp/certs.db",
-	"agentsDB":"/tmp/agents.db",
-	"folders":{
-	    "tmp":"temp",
-	    "config":"config"
-	}
-}
+    "optionalDependencies": {},
+    "engines": {
+        "node": ">=0.10.x"
+    },
+    "main": "./lib/app.js",
+    "config":{
+        "port" : 8123,
+        "logfile": "/var/log/stormtracker.log",
+        "datadir":"/tmp",
+        "stormsigner" :"stormtracker",
+        "signerChain":{
+            "CN":"stormtracker",
+            "selfSigned":true,
+            "days": 1800
+        },
+        "stormkeeper" :{
+            "url":"localhost",
+            "port":8333
+        },
+        "storm":{
+			"functions": [
+				"agent.register"
+			],
+            "plugins": [
+				"./lib/http/certs",
+				"./lib/http/agents"
+			]
+        },
+        "folders":{
+            "tmp":"temp",
+            "config":"config"
+        }
+    },
+    "scripts": {
+        "prepublish": "mkdir -p lib; coffee -o lib -c src",
+        "start": "node lib/app"
+    },
+    "contributors": [
+        "Peter K. Lee <peter@intercloud.net>"
+    ]
 }

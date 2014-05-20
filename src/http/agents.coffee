@@ -1,54 +1,72 @@
 jsonschema = require("json-schema")
-uuid = require("uuid")
+uuid = require("node-uuid")
 CertificateManager = require("http/certs").CertificateManager
 query = require("dirty-query").query
-db = require("util/db")
-auth = require("auth/auth").authenticate
+auth = require("http/auth").authorization
 util = require "util"
 
-agentSchema =
-	name : "Agent"
-	type : "object"
-	additionalProperties : true
-	properties :
-		id: {"type":"string","required":false}
-		stoken: {"type":"string","required":true}
-		serialKey: {"type":"string","required":false}
-		password :{"type":"string","required":false}
-		stormbolt:
-			type: "object"
-			required: true
-			properties:
-				state : {"type":"string", "required":true}
-				servers:
-					items:{"type": "string"}
-				beacon:
-					type: "object"
-					required : false
-					properties:
-						interval:  {"type":"number","required":false}
-						retry:  {"type":"number","required":false}
-				loadbalance:
-					type: "object"
-					required : false
-					properties:
-						algorithm :{"type":"string", "required":false}
-				cabundle:
-					type: "object"
-					required : false
-					properties:
-						encoding: {"type":"string", "required":true}
-						data:  {"type":"string", "required":true}
+StormAgent = require "stormagent"
+StormData = StormAgent.StormData
+StormRegistry = StormAgent.StormRegistry
+
+class AgentsData extends StormData
+	agentSchema =
+		name : "Agent"
+		type : "object"
+		additionalProperties : true
+		properties :
+			id:		   {"type":"string","required":false}
+			stoken:	   {"type":"string","required":true}
+			serialKey: {"type":"string","required":false}
+			bolt:
+				type: "object"
+				required: true
+				additionalProperties : true
+				properties:
+					uplinks:
+						type: "array"
+						items:	{ type:"string", required:false}
+					uplinkStrategy: { type: "string", required: false }
+					allowRelay:		{ type: "boolean", required: false }
+					relayPort:		{ type: "number", required: false }
+					allowedPorts:
+						type: "array"
+						items: { type: "number", required: false }
+					listenPort: { type: "number", required: false }
+					beaconInterval: { type: "number", required: false }
+					beaconRetry:	{ type: "number", required: false }
+					beaconValidity: { type: "number", required: false }
+					ca:
+						type: "object"
+						required : false
+						properties:
+							encoding: {"type":"string", "required":true}
+							data:  {"type":"string", "required":true}
+	constructor :(id,data) ->
+		super id, data, agentSchema
 
 
+class AgentsRegistry extends StormRegistry
+	constructor :(filename) ->
+		@on "load", (key,val) ->
+			entry = new AgentsData key, val
+			if entry?
+				entry.saved = true
+				@add key, val
 
+		@on 'removed', (entry) ->
+			entry.destroy() if entry.destroy?
 
-class AgentManager
-	constructor : ->
-		@agentSchema = agentSchema
-		@CM = new CertificateManager "config", "temp"
-		@db = db.agents()
-		@stormsigner = GLOBAL.config.stormsigner
+		super filename
+
+		get: (key) ->
+			entry = super key
+
+class AgentsManager
+	constructor : (db,certMangr)->
+		@db = db
+		@stormsigner = global.config.stormsigner
+		@CM = certMangr
 
 	update : (id,agent) ->
 		_agent = @db.get id
@@ -56,11 +74,11 @@ class AgentManager
 			return null
 
 		if @validate agent
-			@db.set _agent.id, agent
+			@db.add _agent.id, agent
 
 	create : (agent) ->
 		agent.id = uuid.v4()
-		@db.set agent.id, agent
+		@db.add agent.id, agent
 		return agent
 
 	getAgent : (id) ->
@@ -74,30 +92,21 @@ class AgentManager
 	deleteAgent : (id) ->
 		@db.rm id
 
-	validate: (body) ->
-		console.log 'performing schema validation on incoming agent'
-		return new Error "No body as input" unless body
-		result = jsonschema.validate body, @agentSchema
-		error = new Error("Invalid agent posting!")
-		error.agent_errors = result.errors
-		throw error unless result.valid
-		return result.valid
 
 	loadCaBundle: (agent) ->
-		agent.stormbolt.cabundle =
+		agent.bolt.ca =
 			encoding : "base64"
 			data : new Buffer(@CM.signerBundle @stormsigner).toString("base64")
 		agent
 
 
 @include = ->
-	AM = new AgentManager()
+	AM = @settings.agent.AM
 
 	@post "/agents" : ->
 		try
-			if AM.validate @body
-				agent =  AM.create @body
-				@send AM.loadCaBundle(agent)
+			agent =	 AM.create @body
+			@send AM.loadCaBundle(agent)
 		catch error
 			@response.send 400, error
 
@@ -145,7 +154,7 @@ class AgentManager
 			csrRequest =
 				csr : csrData
 				signee :
-					"daysValidFor": GLOBAL.config.signerChain.days
+					"daysValidFor": global.config.signerChain.days
 				signer : AM.CM.get AM.stormsigner
 			AM.CM.signCSR csrRequest, (err,cert) =>
 				@response.send 400 if err?
@@ -160,4 +169,5 @@ class AgentManager
 			return
 		@send 404
 
-exports.AgentManager = AgentManager
+exports.AgentsManager = AgentsManager
+exports.AgentsRegistry = AgentsRegistry
