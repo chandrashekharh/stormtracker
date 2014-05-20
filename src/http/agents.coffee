@@ -140,7 +140,7 @@ class AgentsManager
 		else
 			@send 404
 
-	@get "/agents/serialKey/:key",auth, ->
+	@get "/agents/serialkey/:key",auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
 			@send AM.loadCaBundle(agent)
