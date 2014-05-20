@@ -7,12 +7,12 @@ BasicStrategy = require("passport-http").BasicStrategy
 exports.BasicStrategy = new BasicStrategy (username,password,done)->
 	process.nextTick ()->
 		util.log "Logging with token "+username
-		done null,{username:username,password:password,rules:["/agents/:id"]}
-		# restClient.get "/tokens/"+username,headers,(err,response)->
-		#	done null,false if err?
-		#	restClient.get "/rules/"+response.rulesId,headers,(response)->
-		#		done null,false if err?
-		#		done null,{username:username,password:password,rules:response.rules}
+		# done null,{username:username,password:password,rules:["/agents/:id"]}
+		restClient.get "/tokens/"+username,headers,(err,response)->
+			done null,false if err?
+			restClient.get "/rules/"+response.rulesId,headers,(response)->
+				done null,false if err?
+				done null,{username:username,password:password,rules:response.rules}
 
 exports.checkRule = (req,res,next) ->
 	id = @params.id
