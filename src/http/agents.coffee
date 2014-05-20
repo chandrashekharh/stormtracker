@@ -1,5 +1,5 @@
 jsonschema = require("json-schema")
-uuid = require("uuid")
+uuid = require("node-uuid")
 CertificateManager = require("http/certs").CertificateManager
 query = require("dirty-query").query
 auth = require("http/auth").authorization
