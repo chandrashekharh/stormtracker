@@ -22,7 +22,7 @@ exports.checkRule = (req,res,next) ->
 		rule = rule.replace(":id",id) if id?
 		rule = rule.replace(":key",id) if key?
 		rule = rule.replace(":status",status) if status?
-		if req.originalUrl == rule
+		if req.method+" "+req.originalUrl == rule
 			next()
 			return
 	res.status(401)
