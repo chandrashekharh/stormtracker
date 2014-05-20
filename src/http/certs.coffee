@@ -1,35 +1,36 @@
 certainly = require("security/certainly")
 uuid = require("uuid")
-Certificate = require("security/certificate").Certificate
-db = require("util/db")
+CertificateRegistry = require("security/certificate").CertificateRegistry
 auth = require("http/auth").authenticate
 util = require "util"
 
 
 class CertificateFactory
-	constructor:->
-		@db = db.certs()
-		@CM = new CertificateManager GLOBAL.config.folders.config, GLOBAL.config.folders.tmp
+	constructor:(db)->
+		@db = db
+		@CM = new CertificateManager global.config.folders.config, global.config.folders.tmp,@db
 
 	init: ()->
-		@db.on "load", =>
-			stormsigner = @db.get GLOBAL.config.stormsigner
+		@db.on "ready",=>
+			console.log "Finding the previously created signer chain "+global.config.stormsigner
+			stormsigner = @db.get global.config.stormsigner
+			console.log "Signer:"+ stormsigner
 			if stormsigner?
 				util.log "Signer chain already exists..skipping creation"
 				return
 			else
-				signerChain = GLOBAL.config.signerChain
+				signerChain = global.config.signerChain
 				rootCert = @CM.blankCert "root@clearpathnet.com","email:copy","StormTracker Root Signer", signerChain.days,true,true
-				rootCert.id= GLOBAL.config.stormsigner
+				rootCert.id= global.config.stormsigner
 				@CM.create rootCert, (err,cert)->
 					util.log JSON.stringify err if err?
 					util.log "Signer chain created"
 
 class CertificateManager
 
-	constructor: (config,temp) ->
-		@db = db.certs()
+	constructor: (config,temp,db) ->
 		certainly.init config, temp
+		@db = db
 
 	loadSigners: (cert) ->
 		root = cert
@@ -108,7 +109,10 @@ class CertificateManager
 			console.log "Creating self signed cert"
 			certainly.genCA cert, (err,cert) =>
 				return callback err if err?
-				@db.set cert.id,cert
+				try
+					@db.add cert.id,cert
+				catch error
+					callback error, null
 				callback null,cert
 		else
 			console.log "Creating signed cert by "+cert.signer
@@ -121,27 +125,23 @@ class CertificateManager
 					certainly.signCSR csr,(err,cert)=>
 						return callback err if err?
 						cert = @unloadSigners cert
-						@db.set cert.id, cert
+						try
+							@db.add cert.id, cert
+						catch error
+							callback error,null
 						callback null, cert
 
 
 passport = require("passport")
 
-
 @include = ->
-	CM = new CertificateManager(GLOBAL.config.folders.config,GLOBAL.config.folders.tmp)
-	certificate = new Certificate()
-
+	CM = @settings.CF.CM
+	console.log "CM "+CM
 	@post "/cert" : ->
 		Response = @response
-		try
-			if certificate.validate @body
-				CM.create @body, (err,cert)=>
-					return @response.send 400,err if err?
-					@response.send cert
-		catch error
-			@response.send 400, error
-			# @next error
+		CM.create @body, (err,cert)=>
+			return @response.send 400,err if err?
+			@response.send cert
 
 	@get "/cert", auth, ->
 		@send CM.list()
@@ -181,8 +181,6 @@ passport = require("passport")
 			@send cert
 		else
 			@send 404
-
-
 
 
 exports.CertificateManager = CertificateManager

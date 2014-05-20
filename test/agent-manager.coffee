@@ -1,3 +1,5 @@
+global.config = require('../package').config
+
 AgentManager = require("../lib/http/agents").AgentManager
 CertificateManager = require("../lib/http/certs").CertificateManager
 uuid = require("uuid")
@@ -5,7 +7,8 @@ fs = require("fs")
 certainly = require("security/certainly")
 HttpClient = require("../lib/http/client").HttpClient
 
-GLOBAL.config = require('../package').config
+
+
 agent =
 	serialKey : "serial"
 	stoken :"sometoken"
@@ -21,8 +24,8 @@ agent =
 			encoding:"base64"
 			data :"base64 encoded certificate"
 
+
 assert = require("assert")
-cm = new CertificateManager("config","temp")
 client = new HttpClient "localhost",5000
 
 describe "AgentManager", ->
@@ -38,7 +41,7 @@ describe "AgentManager", ->
 	describe "getAgent()", ->
 		before (done)->
 			headers = {}
-			client.post "/agents",agent,headers,(response)->
+			client.post "/agents",agent,headers,(err,response)->
 				assert.equal response.serialKey,"serial"
 				agent.id = response.id
 				done()
@@ -67,6 +70,7 @@ describe "AgentManager", ->
 				assert.equal agent.serialKey,response.serialKey
 
 	describe "signCSR()", ->
+		cm = new CertificateManager
 		it "Must sign the csr request", (done)->
 			cert = cm.blankCert("agent1@clearpathnet.com","email:copy","agent007@clearpathnet.com",7600,false)
 			headers =

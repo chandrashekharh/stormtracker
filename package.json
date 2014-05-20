@@ -29,6 +29,7 @@
     "main": "./lib/app.js",
     "config":{
 	"port" : 8123,
+	"logfile": "/var/log/stormtracker.log",
 	"stormsigner" :"stormtracker",
 	"signerChain":{
 	    "CN":"stormtracker",
@@ -39,8 +40,11 @@
 	    "url":"localhost",
 	    "port":8333
 	},
-	"certsDB":"/tmp/certs.db",
-	"agentsDB":"/tmp/agents.db",
+	"datadir":"/tmp",
+	"storm":{
+	    "agent":false,
+	    "plugins":["./lib/http/certs","./lib/http/agents"]
+	},
 	"folders":{
 	    "tmp":"temp",
 	    "config":"config"
