@@ -135,8 +135,8 @@ class CertificateManager
 passport = require("passport")
 
 @include = ->
-	CM = @settings.CF.CM
-	console.log "CM "+CM
+	CM = @settings.agent.CF.CM
+
 	@post "/cert" : ->
 		Response = @response
 		CM.create @body, (err,cert)=>
