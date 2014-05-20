@@ -9,46 +9,41 @@ StormAgent = require "stormagent"
 StormData = StormAgent.StormData
 StormRegistry = StormAgent.StormRegistry
 
-
 class AgentsData extends StormData
 	agentSchema =
 		name : "Agent"
 		type : "object"
 		additionalProperties : true
 		properties :
-			id: {"type":"string","required":false}
-			stoken: {"type":"string","required":true}
+			id:		   {"type":"string","required":false}
+			stoken:	   {"type":"string","required":true}
 			serialKey: {"type":"string","required":false}
-			server_port: {"type":"number","required":false}
-			proxy_listen_port: {"type":"number","required":false}
-			local_forwarding_ports: {"type":"number","required":false}
-			saved: {"type":"boolean","required": false}
-			stormbolt:
+			bolt:
 				type: "object"
 				required: true
+				additionalProperties : true
 				properties:
-					state : {"type":"string", "required":true}
-					servers:
-						items:{"type": "string"}
-					beacon:
-						type: "object"
-						required : false
-						properties:
-							interval:  {"type":"number","required":false}
-							retry:  {"type":"number","required":false}
-					loadbalance:
-						type: "object"
-						required : false
-						properties:
-							algorithm :{"type":"string", "required":false}
-					cabundle:
+					uplinks:
+						type: "array"
+						items:	{ type:"string", required:false}
+					uplinkStrategy: { type: "string", required: false }
+					allowRelay:		{ type: "boolean", required: false }
+					relayPort:		{ type: "number", required: false }
+					allowedPorts:
+						type: "array"
+						items: { type: "number", required: false }
+					listenPort: { type: "number", required: false }
+					beaconInterval: { type: "number", required: false }
+					beaconRetry:	{ type: "number", required: false }
+					beaconValidity: { type: "number", required: false }
+					ca:
 						type: "object"
 						required : false
 						properties:
 							encoding: {"type":"string", "required":true}
 							data:  {"type":"string", "required":true}
 	constructor :(id,data) ->
-		super id, data,agentSchema
+		super id, data, agentSchema
 
 
 class AgentsRegistry extends StormRegistry
@@ -59,8 +54,8 @@ class AgentsRegistry extends StormRegistry
 				entry.saved = true
 				@add key, val
 
-		@on 'removed', (token) ->
-			token.destroy() if token.destroy?
+		@on 'removed', (entry) ->
+			entry.destroy() if entry.destroy?
 
 		super filename
 
@@ -99,7 +94,7 @@ class AgentsManager
 
 
 	loadCaBundle: (agent) ->
-		agent.stormbolt.cabundle =
+		agent.bolt.ca =
 			encoding : "base64"
 			data : new Buffer(@CM.signerBundle @stormsigner).toString("base64")
 		agent
@@ -110,7 +105,7 @@ class AgentsManager
 
 	@post "/agents" : ->
 		try
-			agent =  AM.create @body
+			agent =	 AM.create @body
 			@send AM.loadCaBundle(agent)
 		catch error
 			@response.send 400, error
