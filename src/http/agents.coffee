@@ -86,7 +86,7 @@ class AgentsManager
 		@db.get id
 
 	getAgentBySerial : (serialKey) ->
-		agents = query @db, {"serialKey":serialKey}
+		agents = query @db.db, {"serialKey":serialKey}
 		if agents?
 			return agents[0]
 
@@ -128,7 +128,7 @@ class AgentsManager
 			@send 404
 		@send 204 #Just updated, but no return content
 
-	@get "/agents/:id": ->
+	@get "/agents/:id",auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
 			@send AM.loadCaBundle(agent)

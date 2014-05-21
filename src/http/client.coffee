@@ -3,23 +3,7 @@ http = require("http")
 class HttpClient
 	constructor: (@host, @port) ->
 	get:(path,headers,callback = ->)->
-		http.get(
-			host:@host
-			port:@port
-			path:path
-			headers:headers
-		,(result) ->
-			body = ""
-			result.on "data", (chunk) ->
-				body += chunk
-			result.on "end", ->
-				ctype = result.headers["content-type"].split(";")
-				if ctype[0].trim() is "application/json"
-					body = JSON.parse body
-					callback null, body if callback?
-			result.on "error",(error)->
-				callback error,null
-				)
+		this.send path,null,headers,"GET",callback
 
 	post:(path, data,headers, callback = ->) ->
 		this.send path, data, headers, "POST", callback
@@ -49,6 +33,8 @@ class HttpClient
 				callback error,null
 			)
 		request.write JSON.stringify data if data
+		request.on "error", (error)->
+			callback(error,null)
 		request.end()
 
 exports.HttpClient = HttpClient
