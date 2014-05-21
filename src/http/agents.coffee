@@ -108,7 +108,7 @@ class AgentsManager
 			agent =	 AM.create @body
 			@send AM.loadCaBundle(agent)
 		catch error
-			@log "Error:"+error
+			console.log "Error:"+error
 			@response.send 400, error
 
 	@put "/agents/:id",auth, ->
