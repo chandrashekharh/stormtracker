@@ -52,16 +52,16 @@ class AgentsRegistry extends StormRegistry
 		@on "load", (key,val) ->
 			entry = new AgentsData key, val
 			if entry?
-				@add key, val
 				entry.saved = true
+				@add key, val
 
 		@on 'removed', (entry) ->
 			entry.destroy() if entry.destroy?
 
 		super filename
 
-		get: (key) ->
-			entry = super key
+	get: (key) ->
+		entry = super key
 
 class AgentsManager
 	constructor : (db,certMangr)->
