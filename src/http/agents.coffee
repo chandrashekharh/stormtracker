@@ -13,11 +13,12 @@ class AgentsData extends StormData
 	agentSchema =
 		name : "Agent"
 		type : "object"
-		additionalProperties : true
+		additionalProperties : {}
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
 			serialKey: {"type":"string","required":false}
+			saved : {"type":"boolean","required":false}
 			bolt:
 				type: "object"
 				required: true

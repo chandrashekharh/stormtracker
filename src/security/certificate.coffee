@@ -18,6 +18,7 @@ class Certificate extends StormData
 			signedOn: {"type":"number","required": false}
 			upstream: {"type":"boolean","required": true}
 			downstream: {"type":"boolean","required": true}
+			saved : {"type":"boolean","required":false}
 			subject:
 				type : "object"
 				required : true
