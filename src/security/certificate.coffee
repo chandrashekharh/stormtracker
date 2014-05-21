@@ -18,7 +18,6 @@ class Certificate extends StormData
 			signedOn: {"type":"number","required": false}
 			upstream: {"type":"boolean","required": true}
 			downstream: {"type":"boolean","required": true}
-			saved: {"type":"boolean","required": false}
 			subject:
 				type : "object"
 				required : true
@@ -47,8 +46,8 @@ class CertificateRegistry extends StormRegistry
 			entry = new Certificate key,val
 			console.log key+":"+val
 			if entry?
-				entry.saved = true
 				@add key, entry
+				entry.saved = true
 
 		@on 'removed', (certificate) ->
 			#Remove the certificate

@@ -57,11 +57,10 @@ class CertificateManager
 		certs
 
 	resolveSigners : (cert) ->
-		certs = []
+		certs = [cert]
 		if not cert?
 			return certs
 		else
-			certs.push cert
 			signer = @db.get cert.signer
 			if signer?
 				certs = certs.concat(@resolveSigners(signer))

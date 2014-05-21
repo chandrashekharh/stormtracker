@@ -51,8 +51,8 @@ class AgentsRegistry extends StormRegistry
 		@on "load", (key,val) ->
 			entry = new AgentsData key, val
 			if entry?
-				entry.saved = true
 				@add key, val
+				entry.saved = true
 
 		@on 'removed', (entry) ->
 			entry.destroy() if entry.destroy?
@@ -108,6 +108,7 @@ class AgentsManager
 			agent =	 AM.create @body
 			@send AM.loadCaBundle(agent)
 		catch error
+			@log "Error:"+error
 			@response.send 400, error
 
 	@put "/agents/:id",auth, ->
@@ -126,7 +127,7 @@ class AgentsManager
 			@send 404
 		@send 204 #Just updated, but no return content
 
-	@get "/agents/:id", auth, ->
+	@get "/agents/:id": ->
 		agent = AM.getAgent @params.id
 		if agent?
 			@send AM.loadCaBundle(agent)
