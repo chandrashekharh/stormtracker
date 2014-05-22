@@ -19,6 +19,7 @@ class AgentsData extends StormData
 			stoken:	   {"type":"string","required":true}
 			serialKey: {"type":"string","required":false}
 			saved : {"type":"boolean","required":false}
+			lastActivation : {"type":"string","required":false}
 			bolt:
 				type: "object"
 				required: true
@@ -138,28 +139,27 @@ class AgentsManager
 	@get "/agents/:id/bolt", auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
-			@send AM.loadCaBundle(agent).stormbolt
+			@send AM.loadCaBundle(agent).bolt
 		else
 			@send 404
 
 	@get "/agents/serialkey/:key",auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
-			@send AM.loadCaBundle(agent)
+			@send {"id":agent.id,"serialkey":@params.key}
 		else
 			@send 404
 
 	@post "/agents/:id/csr", auth, ->
-		console.log "CSR for agent #{@params.id}"
+		util.log "CSR for agent #{@params.id}"
 		if (AM.getAgent @params.id)?
-			csrData = new Buffer(@body.data,@body.encoding).toString()
 			csrRequest =
-				csr : csrData
+				csr : @body.file
 				signee :
 					"daysValidFor": global.config.signerChain.days
 				signer : AM.CM.get AM.stormsigner
 			AM.CM.signCSR csrRequest, (err,cert) =>
-				@response.send 400 if err?
+				return @response.send 400 if err?
 				@response.send {"encoding": "base64", "data": new Buffer(cert.cert).toString("base64")}
 		else
 			@send 404

@@ -45,7 +45,7 @@ class CertificateRegistry extends StormRegistry
 			entry = new Certificate key,val
 			if entry?
 				entry.saved = true
-				@add key, entry
+				@add key, val
 		@on 'removed', (certificate) ->
 			certificate.destroy() if certificate.destroy?
 			#Remove the certificate

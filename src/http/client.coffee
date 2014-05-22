@@ -2,6 +2,7 @@ http = require("http")
 
 class HttpClient
 	constructor: (@host, @port) ->
+
 	get:(path,headers,callback = ->)->
 		this.send path,null,headers,"GET",callback
 
@@ -32,9 +33,9 @@ class HttpClient
 			result.on "error",(error)->
 				callback error,null
 			)
-		request.write JSON.stringify data if data
 		request.on "error", (error)->
 			callback(error,null)
+		request.write JSON.stringify data if data
 		request.end()
 
 exports.HttpClient = HttpClient

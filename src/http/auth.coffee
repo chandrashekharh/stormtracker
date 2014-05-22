@@ -6,21 +6,21 @@ restClient = new RestClient global.config.stormkeeper.url,global.config.stormkee
 BasicStrategy = require("passport-http").BasicStrategy
 query = require("dirty-query").query
 
-FindAgent = (stoken) ->
-	agents = query global.agentsDB,{"stoken":stoken}
+FindAgent = (stoken,serial) ->
+	agents = query global.agentsDB,{{"stoken":stoken},{"serial":serial}}
 	if agents?
 		return agents[0]
 	return null
 
 exports.BasicStrategy = new BasicStrategy (username,password,done)->
 	process.nextTick ()->
-		if FindAgent(username)?
+		if FindAgent(password,username)?
 			util.log "Authentication succeeded"
 			# done null,{username:username,password:password,rules:["/agents/:id"]}
-			restClient.get "/tokens/"+username,headers,(err,response)->
-				util.log "Authorization failed, err"+err
-				return done null,false if err? or not response?
-				done null,{username:username,password:password,rules:response.rules}
+			restClient.get "/tokens/"+password,headers,(err,response)->
+				util.log "Authorization failed, err "+err if err? or not response?
+				return done null,false if err? or response?
+				done null,{username:username,password:password,rules:response.rule.rules}
 		else
 			done null,false
 
@@ -31,7 +31,7 @@ exports.checkRule = (req,res,next) ->
 	if req.user.rules?
 		for rule in req.user.rules
 			rule = rule.replace(":id",id) if id?
-			rule = rule.replace(":key",id) if key?
+			rule = rule.replace(":key",key) if key?
 			rule = rule.replace(":status",status) if status?
 			if req.method+" "+req.originalUrl == rule
 				next()
