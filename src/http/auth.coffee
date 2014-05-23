@@ -7,7 +7,7 @@ BasicStrategy = require("passport-http").BasicStrategy
 query = require("dirty-query").query
 
 FindAgent = (stoken,serial) ->
-	agents = query global.agentsDB,{{"stoken":stoken},{"serial":serial}}
+	agents = query global.agentsDB,{"stoken":stoken},{"serial":serial}
 	if agents?
 		return agents[0]
 	return null
@@ -19,7 +19,7 @@ exports.BasicStrategy = new BasicStrategy (username,password,done)->
 			# done null,{username:username,password:password,rules:["/agents/:id"]}
 			restClient.get "/tokens/"+password,headers,(err,response)->
 				util.log "Authorization failed, err "+err if err? or not response?
-				return done null,false if err? or response?
+				return done null,false if err? or not response?
 				done null,{username:username,password:password,rules:response.rule.rules}
 		else
 			done null,false

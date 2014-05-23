@@ -21,16 +21,21 @@ class HttpClient
 			path:path
 			method:method
 			headers:headers
-		,(result) ->
+		,(response) ->
 			body = ""
-			result.on "data", (chunk) ->
+			response.on "data", (chunk) ->
 				body += chunk
-			result.on "end", ->
-				ctype = result.headers["content-type"].split(";")
-				if "application/json" is ctype[0].trim()
-					body = JSON.parse body
-					callback null, body
-			result.on "error",(error)->
+			response.on "end", ->
+				if response.statusCode == 200
+					ctype = response.headers["content-type"].split(";")
+					if "application/json" is ctype[0].trim()
+						body = JSON.parse body
+						callback null, body
+				else
+					err = new Error "Not a proper response"
+					err.statusCode = response.statusCode
+					callback err,null
+			response.on "error",(error)->
 				callback error,null
 			)
 		request.on "error", (error)->
