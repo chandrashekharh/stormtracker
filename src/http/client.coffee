@@ -32,7 +32,7 @@ class HttpClient
 						body = JSON.parse body
 						callback null, body
 				else
-					err = new Error "Not a proper response"
+					err = new Error "Not a proper response, status code="+response.statusCode
 					err.statusCode = response.statusCode
 					callback err,null
 			response.on "error",(error)->
