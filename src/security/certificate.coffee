@@ -7,7 +7,7 @@ class Certificate extends StormData
 	certificateSchema =
 		name : "Certificate"
 		type : "object"
-		additionalProperties :  {"type":"string"}
+		additionalProperties :  {}
 		properties:
 			id: {"type":"string","required":false}
 			privateKey: {"type":"string","required":false}
@@ -16,9 +16,8 @@ class Certificate extends StormData
 			signer: {"type":"string","required": false}
 			selfSigned: {"type":"boolean","required": true}
 			signedOn: {"type":"number","required": false}
-			upstream: {"type":"boolean","required": true}
-			downstream: {"type":"boolean","required": true}
-			saved: {"type":"boolean","required": false}
+			upstream: {"type":"boolean","required": false}
+			downstream: {"type":"boolean","required": false}
 			subject:
 				type : "object"
 				required : true
@@ -43,14 +42,12 @@ class Certificate extends StormData
 class CertificateRegistry extends StormRegistry
 	constructor: (filename) ->
 		@on 'load', (key,val) ->
-			console.log "Inside load"
 			entry = new Certificate key,val
-			console.log key+":"+val
 			if entry?
 				entry.saved = true
-				@add key, entry
-
+				@add key, val
 		@on 'removed', (certificate) ->
+			certificate.destroy() if certificate.destroy?
 			#Remove the certificate
 		super filename
 

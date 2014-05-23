@@ -4,27 +4,38 @@ util = require("util")
 headers = {}
 restClient = new RestClient global.config.stormkeeper.url,global.config.stormkeeper.port
 BasicStrategy = require("passport-http").BasicStrategy
+query = require("dirty-query").query
+
+FindAgent = (stoken,serial) ->
+	agents = query global.agentsDB,{"stoken":stoken},{"serial":serial}
+	if agents?
+		return agents[0]
+	return null
+
 exports.BasicStrategy = new BasicStrategy (username,password,done)->
 	process.nextTick ()->
-		util.log "Logging with token "+username
-		# done null,{username:username,password:password,rules:["/agents/:id"]}
-		restClient.get "/tokens/"+username,headers,(err,response)->
-			done null,false if err?
-			restClient.get "/rules/"+response.rulesId,headers,(response)->
-				done null,false if err?
-				done null,{username:username,password:password,rules:response.rules}
+		if FindAgent(password,username)?
+			util.log "Authentication succeeded"
+			# done null,{username:username,password:password,rules:["/agents/:id"]}
+			restClient.get "/tokens/"+password,headers,(err,response)->
+				util.log "Authorization failed, err "+err if err? or not response?
+				return done null,false if err? or not response?
+				done null,{username:username,password:password,rules:response.rule.rules}
+		else
+			done null,false
 
 exports.checkRule = (req,res,next) ->
 	id = @params.id
 	key = @params.key
 	status = @params.status
-	for rule in req.user.rules
-		rule = rule.replace(":id",id) if id?
-		rule = rule.replace(":key",id) if key?
-		rule = rule.replace(":status",status) if status?
-		if req.method+" "+req.originalUrl == rule
-			next()
-			return
+	if req.user.rules?
+		for rule in req.user.rules
+			rule = rule.replace(":id",id) if id?
+			rule = rule.replace(":key",key) if key?
+			rule = rule.replace(":status",status) if status?
+			if req.method+" "+req.originalUrl == rule
+				next()
+				return
 	res.status(401)
 	next("Forbidden")
 

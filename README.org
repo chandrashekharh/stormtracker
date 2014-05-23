@@ -19,19 +19,15 @@
 Request JSON
 #+BEGIN_SRC json
 {
-  serialKey: "some serial key",
-  stoken: "some token"
-  password: "password",
-  stormbolt: {
-    state: "ACTIVE",
-    servers: ["bolt://testserver"],
-    beacon: {
-      interval: 2000,
-      retry: 2000
-    },
-    loadbalance: {
-      algorithm: "roundrobin"
-    }
+  "serialKey": "18ff6c17-376f-469f-b9dd-6247efe1bf00",
+  "stoken": "424df38b-5908-4f84-811e-fe421f7ad44d",
+  "bolt": {
+    "uplinks": [
+      "stormtower.dev.intercloud.net"
+    ],
+    "beaconInterval":10,
+    "beaconRetry": 2,
+    "uplinkStrategy":"roundrobin"
   }
 }
 #+END_SRC

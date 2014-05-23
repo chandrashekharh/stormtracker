@@ -234,6 +234,7 @@ signCSR = (csr, caCert, caKey, daysValidFor, callback) ->
 		findExtensions csr, (err, extensions) ->
 			puts inspect extensions
 			genExtensions extensions, (err, extensionFile) ->
+				return callback err if err?
 				args = [ "-req", "-days #{daysValidFor}", "-CA \"#{certPath}\"", "-CAkey \"#{keyPath}\"", "-CAserial \"#{srlFile}\"", "-in #{csrPath}", "-out #{outputPath}", "-extfile #{extensionFile}" ]
 				cmd = "openssl x509 #{args.join(" ")}"
 				exec cmd, (err, stdout, stderr) ->
@@ -241,11 +242,10 @@ signCSR = (csr, caCert, caKey, daysValidFor, callback) ->
 					fs.unlink csrPath
 					fs.unlink certPath
 					fs.unlink extensionFile
-					if err?
-						return callback "Error while executing: #{cmd}\n#{err}"
+					return callback "Error while executing: #{cmd}\n#{err}" if err?
 					fs.readFile outputPath, (err, output) ->
 						fs.unlink outputPath
-						return callback(err) if err?
+						return callback err if err?
 						return callback null, output
 	fs.writeFile csrPath, csr, (err) ->
 		barrier.join()

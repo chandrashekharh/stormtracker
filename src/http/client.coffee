@@ -2,24 +2,9 @@ http = require("http")
 
 class HttpClient
 	constructor: (@host, @port) ->
+
 	get:(path,headers,callback = ->)->
-		http.get(
-			host:@host
-			port:@port
-			path:path
-			headers:headers
-		,(result) ->
-			body = ""
-			result.on "data", (chunk) ->
-				body += chunk
-			result.on "end", ->
-				ctype = result.headers["content-type"].split(";")
-				if ctype[0].trim() is "application/json"
-					body = JSON.parse body
-					callback null, body if callback?
-			result.on "error",(error)->
-				callback error,null
-				)
+		this.send path,null,headers,"GET",callback
 
 	post:(path, data,headers, callback = ->) ->
 		this.send path, data, headers, "POST", callback
@@ -36,18 +21,25 @@ class HttpClient
 			path:path
 			method:method
 			headers:headers
-		,(result) ->
+		,(response) ->
 			body = ""
-			result.on "data", (chunk) ->
+			response.on "data", (chunk) ->
 				body += chunk
-			result.on "end", ->
-				ctype = result.headers["content-type"].split(";")
-				if "application/json" is ctype[0].trim()
-					body = JSON.parse body
-					callback null, body
-			result.on "error",(error)->
+			response.on "end", ->
+				if response.statusCode == 200
+					ctype = response.headers["content-type"].split(";")
+					if "application/json" is ctype[0].trim()
+						body = JSON.parse body
+						callback null, body
+				else
+					err = new Error "Not a proper response, status code="+response.statusCode
+					err.statusCode = response.statusCode
+					callback err,null
+			response.on "error",(error)->
 				callback error,null
 			)
+		request.on "error", (error)->
+			callback(error,null)
 		request.write JSON.stringify data if data
 		request.end()
 

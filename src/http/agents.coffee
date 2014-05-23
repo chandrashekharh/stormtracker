@@ -13,11 +13,13 @@ class AgentsData extends StormData
 	agentSchema =
 		name : "Agent"
 		type : "object"
-		additionalProperties : true
+		additionalProperties : {}
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
 			serialKey: {"type":"string","required":false}
+			saved : {"type":"boolean","required":false}
+			lastActivation : {"type":"string","required":false}
 			bolt:
 				type: "object"
 				required: true
@@ -59,8 +61,8 @@ class AgentsRegistry extends StormRegistry
 
 		super filename
 
-		get: (key) ->
-			entry = super key
+	get: (key) ->
+		entry = super key
 
 class AgentsManager
 	constructor : (db,certMangr)->
@@ -85,7 +87,7 @@ class AgentsManager
 		@db.get id
 
 	getAgentBySerial : (serialKey) ->
-		agents = query @db, {"serialKey":serialKey}
+		agents = query @db.db, {"serialKey":serialKey}
 		if agents?
 			return agents[0]
 
@@ -108,6 +110,7 @@ class AgentsManager
 			agent =	 AM.create @body
 			@send AM.loadCaBundle(agent)
 		catch error
+			console.log "Error:"+error
 			@response.send 400, error
 
 	@put "/agents/:id",auth, ->
@@ -126,7 +129,7 @@ class AgentsManager
 			@send 404
 		@send 204 #Just updated, but no return content
 
-	@get "/agents/:id", auth, ->
+	@get "/agents/:id",auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
 			@send AM.loadCaBundle(agent)
@@ -136,28 +139,27 @@ class AgentsManager
 	@get "/agents/:id/bolt", auth, ->
 		agent = AM.getAgent @params.id
 		if agent?
-			@send AM.loadCaBundle(agent).stormbolt
+			@send AM.loadCaBundle(agent).bolt
 		else
 			@send 404
 
 	@get "/agents/serialkey/:key",auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
-			@send AM.loadCaBundle(agent)
+			@send {"id":agent.id,"serialkey":@params.key}
 		else
 			@send 404
 
 	@post "/agents/:id/csr", auth, ->
-		console.log "CSR for agent #{@params.id}"
+		util.log "CSR for agent #{@params.id}"
 		if (AM.getAgent @params.id)?
-			csrData = new Buffer(@body.data,@body.encoding).toString()
 			csrRequest =
-				csr : csrData
+				csr : @body.file
 				signee :
 					"daysValidFor": global.config.signerChain.days
 				signer : AM.CM.get AM.stormsigner
 			AM.CM.signCSR csrRequest, (err,cert) =>
-				@response.send 400 if err?
+				return @response.send 400 if err?
 				@response.send {"encoding": "base64", "data": new Buffer(cert.cert).toString("base64")}
 		else
 			@send 404

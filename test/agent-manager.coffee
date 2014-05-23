@@ -8,25 +8,21 @@ certainly = require("security/certainly")
 HttpClient = require("../lib/http/client").HttpClient
 
 
-
-agent =
-	serialKey : "serial"
-	stoken :"sometoken"
-	stormbolt :
-		state : "ACTIVE"
-		servers : ["bolt://testserver"]
-		beacon :
-			interval : 2000
-			retry : 2000
-		loadbalance :
-			algorithm : "roundrobin"
-		cabundle:
-			encoding:"base64"
-			data :"base64 encoded certificate"
-
+agent ={
+	"serialKey": "serial",
+	"stoken": "stoken",
+	"bolt": {
+		"uplinks": [
+		 "stormtower.dev.intercloud.net"
+		],
+	"beaconInterval": 10,
+	"beaconRetry": 2,
+	"uplinkStrategy": "roundrobin"
+  }
+}
 
 assert = require("assert")
-client = new HttpClient "localhost",5000
+client = new HttpClient "localhost",8123
 
 describe "AgentManager", ->
 
@@ -38,10 +34,12 @@ describe "AgentManager", ->
 	#			agent.id = response.id
 	#			done()
 
+
 	describe "getAgent()", ->
 		before (done)->
 			headers = {}
 			client.post "/agents",agent,headers,(err,response)->
+				console.log JSON.stringify response
 				assert.equal response.serialKey,"serial"
 				agent.id = response.id
 				done()
@@ -52,9 +50,8 @@ describe "AgentManager", ->
 			client.post "/agents",agent,headers,(err,response)->
 				assert.equal response.serialKey,"serial"
 				client.get "/agents/"+response.id,headers,(err,response) ->
-					assert.equal response.stormbolt.cabundle.encoding,"base64"
+					assert.equal response.bolt.ca.encoding,"base64"
 					done()
-
 
 	describe "getAgentBySerial()", (done)->
 		before (done)->
