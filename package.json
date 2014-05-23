@@ -1,7 +1,7 @@
 {
     "name": "stormtracker",
     "description": "A new nexus in the sleeves of a node.js.",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "author": "Devanand Reddy",
 	"homepage": "http://stormstack.org",
     "repository": {
@@ -64,6 +64,7 @@
 	"start": "node lib/app"
     },
     "contributors": [
-	"Peter K. Lee <peter@intercloud.net>"
+	"Peter K. Lee <peter@intercloud.net>",
+        "Sivaprasath Busa"
     ]
 }
