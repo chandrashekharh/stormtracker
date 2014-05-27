@@ -36,7 +36,9 @@ export NODE_PATH=$NODE_PATH:/lib/node_modules:/lib/node_modules/stormtracker/nod
 **Step-3** Run stormtracker js file
 
 nohup node lib/stormtracker.js >> /var/log/stormtracker.log 2>&1 & 
-or
+
+(or)
+
 nohup npm start >> /var/log/stormtracker.log 2>&1 &
 
 # List of Stormtracker APIs
