@@ -29,11 +29,12 @@
 
 **Step-1** You need to export NODE_PATH as below, say, if the stormtracker node dir is present in path "/lib/node_modules"
 
-**export NODE_PATH=$NODE_PATH:/lib/node_modules:/lib/node_modules/stormtracker/node_modules:/lib/node_modules/stormtracker/lib:/lib/node_modules/stormtracker/lib/:/lib/node_modules/stormtracker/node_modules/**
+export NODE_PATH=$NODE_PATH:/lib/node_modules:/lib/node_modules/stormtracker/node_modules:/lib/node_modules/stormtracker/lib:/lib/node_modules/stormtracker/lib/:/lib/node_modules/stormtracker/node_modules/
 
 **Step-2** cd /lib/node_modules/stormtracker/
 
 **Step-3** Run stormtracker js file
+
 nohup node lib/stormtracker.js >> /var/log/stormtracker.log 2>&1 & 
 or
 nohup npm start >> /var/log/stormtracker.log 2>&1 &
