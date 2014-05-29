@@ -17,7 +17,7 @@ class AgentsData extends StormData
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
-			serialKey: {"type":"string","required":false}
+			serialkey: {"type":"string","required":false}
 			saved : {"type":"boolean","required":false}
 			lastActivation : {"type":"string","required":false}
 			bolt:
@@ -87,7 +87,8 @@ class AgentsManager
 		@db.get id
 
 	getAgentBySerial : (serialKey) ->
-		agents = query @db.db, {"serialKey":serialKey}
+		agents = query @db.db, {"serialkey":serialKey}
+
 		if agents?
 			return agents[0]
 
