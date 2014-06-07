@@ -7,7 +7,7 @@ BasicStrategy = require("passport-http").BasicStrategy
 query = require("dirty-query").query
 
 FindAgent = (stoken,serial) ->
-	agents = query global.agentsDB,{"stoken":stoken},{"serial":serial}
+	agents = query global.agentsDB,{"stoken":stoken},{"serialkey":serial}
 	if agents?
 		return agents[0]
 	return null

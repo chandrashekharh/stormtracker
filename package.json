@@ -34,7 +34,7 @@
     "config":{
 	"port" : 8123,
 	"logfile": "/var/log/stormtracker.log",
-	"datadir":"/tmp",
+	"datadir":"/var/stormstack",
 	"stormsigner" :"stormtracker",
 	"signerChain":{
 	    "CN":"stormtracker",
@@ -65,6 +65,6 @@
     },
     "contributors": [
 	    "Peter K. Lee <peter@intercloud.net>",
-        "Sivaprasath Busa"
+	"Sivaprasath Busa"
     ]
 }
