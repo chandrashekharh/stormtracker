@@ -8,7 +8,7 @@ ThreadBarrier = require("util/concurrent").ThreadBarrier
 
 exclusive = new Semaphore
 srlFile = "serial.srl"
-TEMP_DIR = "temp"
+TEMP_DIR = "/tmp"
 CONFIG_DIR = "config"
 
 randomString = (bits) ->

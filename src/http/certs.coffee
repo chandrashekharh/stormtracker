@@ -8,7 +8,7 @@ util = require "util"
 class CertificateFactory
 	constructor:(db)->
 		@db = db
-		@CM = new CertificateManager global.config.folders.config, global.config.folders.tmp,@db
+		@CM = new CertificateManager __dirname+"/../../"+global.config.folders.config, global.config.folders.tmp,@db
 
 	init: ()->
 		@db.on "ready",=>

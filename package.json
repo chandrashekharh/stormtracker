@@ -55,7 +55,7 @@
 			]
 	},
 	"folders":{
-	    "tmp":"temp",
+	    "tmp":"/tmp",
 	    "config":"config"
 	}
     },
