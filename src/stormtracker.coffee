@@ -34,9 +34,3 @@ if require.main is module
 	storm = null # override during dev
 	agent = new StormTracker
 	agent.run storm
-
-	# Garbage collect every 2 sec
-	# Run node with --expose-gc
-	setInterval (
-		() -> gc()
-	), 2000 if gc?
