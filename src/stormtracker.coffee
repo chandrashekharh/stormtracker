@@ -9,9 +9,12 @@ class StormTracker extends StormAgent
 		CertificateRegistry = require("security/certificate").CertificateRegistry
 		auth = require("http/auth")
 		require("passport").use require("http/auth").BasicStrategy
+
 		@log "StormTracker constructor called "+global.config.datadir
-		@certsdb  = new CertificateRegistry "#{global.config.datadir}/certs.db"
-		@agentsdb = new AgentsRegistry "#{global.config.datadir}/agents.db"
+		fs.mkdir "#{global.config.datadir}", (result) =>
+		    @certsdb  = new CertificateRegistry "#{global.config.datadir}/certs.db"
+		    @agentsdb = new AgentsRegistry "#{global.config.datadir}/agents.db"
+
 		CertificateFactory = require("http/certs").CertificateFactory
 		@CF = new CertificateFactory(@certsdb)
 		@CF.init()

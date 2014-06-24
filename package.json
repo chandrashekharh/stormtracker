@@ -1,7 +1,7 @@
 {
     "name": "stormtracker",
     "description": "A new nexus in the sleeves of a node.js.",
-    "version": "0.1.13",
+    "version": "0.1.14",
     "author": "Devanand Reddy",
 	"homepage": "http://stormstack.org",
     "repository": {
