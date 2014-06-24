@@ -15,12 +15,12 @@ class StormTracker extends StormAgent
 		    @certsdb  = new CertificateRegistry "#{global.config.datadir}/certs.db"
 		    @agentsdb = new AgentsRegistry "#{global.config.datadir}/agents.db"
 
-		CertificateFactory = require("http/certs").CertificateFactory
-		@CF = new CertificateFactory(@certsdb)
-		@CF.init()
-		@AM = new AgentsManager(@agentsdb,@CF.CM)
-		require("passport").use require("http/auth").BasicStrategy
-		global.agentsDB=@agentsdb.db
+		    CertificateFactory = require("http/certs").CertificateFactory
+		    @CF = new CertificateFactory(@certsdb)
+		    @CF.init()
+		    @AM = new AgentsManager(@agentsdb,@CF.CM)
+		    require("passport").use require("http/auth").BasicStrategy
+		    global.agentsDB=@agentsdb.db
 	run : (config) ->
 		super config
 		console.log "Inside run....."
