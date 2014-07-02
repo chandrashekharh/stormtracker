@@ -1,0 +1,199 @@
+* StormTracker
+  *Stormtracker* is the module which keeps track of all the stormflash endpoints - basically the one who provides identification, authorization and activation of stormflash endpoints
+
+* List of Stormtracker APIs
+  | Verb   | Uri                          | Description                             | Authorization |
+  |--------+------------------------------+-----------------------------------------+---------------|
+  | POST   | =/agents=                    | Create an agent object                  | No            |
+  | POST   | =/agents/:id/csr=            | Sign the incoming CSR, returns the cert | Yes           |
+  | PUT    | =/agents/:id=                | Update the agent object                 | Yes           |
+  | PUT    | =/agents/:id/status/:status= | Update the state field in agent object  | No            |
+  | GET    | =/agents/:id=                | Retreive the agent                      | Yes           |
+  | GET    | =/agents/:id/bolt=           | Retreive the underlying bolt object     | Yes           |
+  | GET    | =/agents/serialKey/:key=     | Retreive the agent by serial key        | Yes           |
+  | DELETE | =/agents/:id=                | Remove the agent from db                | No            |
+
+
+
+*** POST =/agents=
+Request JSON
+#+BEGIN_SRC json
+{
+  "serialKey": "18ff6c17-376f-469f-b9dd-6247efe1bf00",
+  "stoken": "424df38b-5908-4f84-811e-fe421f7ad44d",
+  "bolt": {
+    "uplinks": [
+      "stormtower.dev.intercloud.net"
+    ],
+    "beaconInterval":10,
+    "beaconRetry": 2,
+    "uplinkStrategy":"roundrobin"
+  }
+}
+#+END_SRC
+
+Response JSON
+#+BEGIN_SRC json
+{
+  id :"uuid"
+  serialKey: "some serial key",
+  stoken: "some token"
+  password: "password",
+  stormbolt: {
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    },
+    cabundle: {
+      encoding: "base64",
+      data: "base64 encoded certificate"
+    }
+  }
+}
+#+END_SRC
+
+***  POST  =/agents/:id/csr=
+Request JSON
+#+BEGIN_SRC json
+{
+    encoding: "base64",
+    data: "base64 encoded CSR"
+}
+#+END_SRC
+
+Response JSON
+#+BEGIN_SRC json
+{
+    encoding: "base64",
+    data: "base64 encoded signed certificate"
+}
+#+END_SRC
+
+
+*** PUT    =/agents/:id=
+Request JSON
+#+BEGIN_SRC json
+{
+  id:"uuid",
+  serialKey: "some serial key",
+  stoken: "some token"
+  password: "password",
+  stormbolt: {
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    }
+  }
+}
+#+END_SRC
+
+Response JSON
+#+BEGIN_SRC json
+{
+  id:"uuid",
+  serialKey: "some serial key",
+  stoken: "some token"
+  password: "password",
+  stormbolt: {
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    }
+  }
+}
+#+END_SRC
+
+*** PUT    =/agents/:id/status/:status=
+    Update the status valid values (ACTIVE | INACTIVE)
+Returns Http Status code 204
+
+GET     =/agents/:id=
+
+Response JSON
+#+BEGIN_SRC json
+{
+  id :"uuid"
+  serialKey: "some serial key",
+  stoken: "some token"
+  password: "password",
+  stormbolt: {
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    },
+    cabundle: {
+      encoding: "base64",
+      data: "base64 encoded certificate"
+    }
+  }
+}
+#+END_SRC
+
+
+*** GET     =/agents/:id/bolt=
+Response JSON
+#+BEGIN_SRC json
+{
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    },
+    cabundle: {
+      encoding: "base64",
+      data: "base64 encoded certificate"
+    }
+}
+#+END_SRC
+*** GET     =/agents/serialKey/:key=
+Response JSON
+#+BEGIN_SRC json
+{
+  id :"uuid"
+  serialKey: "some serial key",
+  stoken: "some token"
+  password: "password",
+  stormbolt: {
+    state: "ACTIVE",
+    servers: ["bolt://testserver"],
+    beacon: {
+      interval: 2000,
+      retry: 2000
+    },
+    loadbalance: {
+      algorithm: "roundrobin"
+    },
+    cabundle: {
+      encoding: "base64",
+      data: "base64 encoded certificate"
+    }
+  }
+}
+#+END_SRC
+
+*** DELETE  =/agents/:id=
+Returns Http status code 204
