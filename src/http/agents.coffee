@@ -70,6 +70,13 @@ class AgentsManager
 		@stormsigner = global.config.stormsigner
 		@CM = certMangr
 
+	validate : (body) ->
+		entry = new AgentsData null, body
+		if entry?
+			return true
+		else
+			return false
+
 	update : (id,agent) ->
 		_agent = @db.get id
 		if not _agent?
@@ -87,7 +94,7 @@ class AgentsManager
 		@db.get id
 
 	getAgentBySerial : (serialKey) ->
-		agents = query @db.db, {"serialkey":serialKey}
+		agents = query @db.db, {"serialKey":serialKey}
 
 		if agents?
 			return agents[0]
