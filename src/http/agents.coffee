@@ -17,7 +17,7 @@ class AgentsData extends StormData
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
-			serialkey: {"type":"string","required":false}
+			serialkey: {"type":"string","required":true}
 			saved : {"type":"boolean","required":false}
 			lastActivation : {"type":"string","required":false}
 			bolt:
@@ -70,19 +70,20 @@ class AgentsManager
 		@stormsigner = global.config.stormsigner
 		@CM = certMangr
 
-	validate : (body) ->
-		entry = new AgentsData null, body
-		if entry?
-			return true
-		else
-			return false
+	validate : (paramId, bodyId, body) ->
+		unless paramId == bodyId
+			throw new Error "id does not match with url"
+
+		try
+			entry = new AgentsData bodyId, body
+		catch err
+			throw new Error "invalid json data"
 
 	update : (id,agent) ->
 		_agent = @db.get id
 		if not _agent?
 			return null
-
-		if @validate agent
+		else
 			@db.add _agent.id, agent
 
 	create : (agent) ->
@@ -94,7 +95,7 @@ class AgentsManager
 		@db.get id
 
 	getAgentBySerial : (serialKey) ->
-		agents = query @db.db, {"serialKey":serialKey}
+		agents = query @db.db, {"serialkey":serialKey}
 
 		if agents?
 			return agents[0]
@@ -123,10 +124,16 @@ class AgentsManager
 
 	@put "/agents/:id",auth, ->
 		try
-			if AM.validate @body
-				@send AM.update @body.id,@body
+			entry = AM.getAgent @params.id
+			if entry?
+				AM.validate @params.id, @body.id, @body
+				AM.update @body.id, @body
+				@send AM.loadCaBundle(@body)
+			else
+				@send 404
 		catch error
-			@response.send 400, error
+			@response.status(400)
+			@response.send error: "#{error}"
 
 	@put "/agents/:id/status/:status" : ->
 		agent = @db.get @params.id
