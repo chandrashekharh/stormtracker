@@ -84,6 +84,8 @@ class AgentsManager
 		if not _agent?
 			return null
 		else
+			unless agent.bolt.ca?
+				agent.bolt.ca = _agent.bolt.ca if _agent.bolt.ca?
 			@db.add _agent.id, agent
 
 	create : (agent) ->
@@ -127,8 +129,7 @@ class AgentsManager
 			entry = AM.getAgent @params.id
 			if entry?
 				AM.validate @params.id, @body.id, @body
-				AM.update @body.id, @body
-				@send AM.loadCaBundle(@body)
+				@send AM.update @body.id, @body
 			else
 				@send 404
 		catch error
