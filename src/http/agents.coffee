@@ -103,7 +103,7 @@ class AgentsManager
 			return agents[0]
 
 	deleteAgent : (id) ->
-		@db.rm id
+		@db.remove id
 
 
 	loadCaBundle: (agent) ->
@@ -180,9 +180,9 @@ class AgentsManager
 		else
 			@send 404
 
-	@del "/agents/:id", auth : ->
-		if (@db.get @params.id)?
-			@db.rm @params.id
+	@del "/agents/:id", auth, ->
+		if (AM.getAgent @params.id)?
+			AM.deleteAgent @params.id
 			@send 204
 			return
 		@send 404
