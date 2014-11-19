@@ -17,7 +17,7 @@ class AgentsData extends StormData
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
-			serialkey: {"type":"string","required":false}
+			serialkey: {"type":"string","required":true}
 			saved : {"type":"boolean","required":false}
 			lastActivation : {"type":"string","required":false}
 			bolt:
@@ -70,12 +70,22 @@ class AgentsManager
 		@stormsigner = global.config.stormsigner
 		@CM = certMangr
 
+	validate : (paramId, bodyId, body) ->
+		unless paramId == bodyId
+			throw new Error "id does not match with url"
+
+		try
+			entry = new AgentsData bodyId, body
+		catch err
+			throw new Error "invalid json data"
+
 	update : (id,agent) ->
 		_agent = @db.get id
 		if not _agent?
 			return null
-
-		if @validate agent
+		else
+			unless agent.bolt.ca?
+				agent.bolt.ca = _agent.bolt.ca if _agent.bolt.ca?
 			@db.add _agent.id, agent
 
 	create : (agent) ->
@@ -116,10 +126,15 @@ class AgentsManager
 
 	@put "/agents/:id",auth, ->
 		try
-			if AM.validate @body
-				@send AM.update @body.id,@body
+			entry = AM.getAgent @params.id
+			if entry?
+				AM.validate @params.id, @body.id, @body
+				@send AM.update @body.id, @body
+			else
+				@send 404
 		catch error
-			@response.send 400, error
+			@response.status(400)
+			@response.send error: "#{error}"
 
 	@put "/agents/:id/status/:status" : ->
 		agent = @db.get @params.id
