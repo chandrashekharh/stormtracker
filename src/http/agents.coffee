@@ -180,7 +180,7 @@ class AgentsManager
 		else
 			@send 404
 
-	@del "/agents/:id", auth, ->
+	@del "/agents/:id", ->
 		if (AM.getAgent @params.id)?
 			AM.deleteAgent @params.id
 			@send 204
