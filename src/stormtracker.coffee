@@ -41,3 +41,5 @@ if require.main is module
 	storm = null # override during dev
 	agent = new StormTracker
 	agent.run storm
+	process.on 'uncaughtException' , (err) ->
+		agent.log 'ALERT.. caught exception', err, err.stack
