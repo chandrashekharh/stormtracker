@@ -89,7 +89,7 @@ class AgentsManager
 			@db.add _agent.id, agent
 
 	create : (agent) ->
-		agent.id = uuid.v4()
+		agent.id?=uuid.v4()
 		@db.add agent.id, agent
 		return agent
 
