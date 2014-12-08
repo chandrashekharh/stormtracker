@@ -54,6 +54,7 @@ class AgentsRegistry extends StormRegistry
 			entry = new AgentsData key, val
 			if entry?
 				entry.saved = true
+				entry.id = key
 				@add key, entry
 
 		@on 'removed', (entry) ->
