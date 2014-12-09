@@ -13,12 +13,11 @@ class AgentsData extends StormData
 	agentSchema =
 		name : "Agent"
 		type : "object"
-		additionalProperties : {}
+		additionalProperties : true
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
 			serialkey: {"type":"string","required":true}
-			saved : {"type":"boolean","required":false}
 			lastActivation : {"type":"string","required":false}
 			bolt:
 				type: "object"
@@ -55,6 +54,7 @@ class AgentsRegistry extends StormRegistry
 			if entry?
 				entry.saved = true
 				entry.id = key
+				console.log "loading key #{key} and val #{val}"
 				@add key, entry
 
 		@on 'removed', (entry) ->
@@ -85,14 +85,23 @@ class AgentsManager
 		if not _agent?
 			return null
 		else
-			unless agent.bolt.ca?
-				agent.bolt.ca = _agent.bolt.ca if _agent.bolt.ca?
-			@db.add _agent.id, agent
+            if agent.data?.bolt?.ca?
+            	delete agent.data.bolt.ca
+		try
+			entry = new AgentsData _agent.id, agent
+			@db.update  _agent.id, entry
+		catch err
+			throw new Error "invalid json data"
+
 
 	create : (agent) ->
 		agent.id?=uuid.v4()
-		@db.add agent.id, agent
-		return agent
+		try
+			entry = new AgentsData agent.id, agent
+			@db.add agent.id, entry
+			return entry
+		catch err
+			throw new Error "invalid json data"
 
 	getAgent : (id) ->
 		@db.get id
@@ -120,16 +129,17 @@ class AgentsManager
 	@post "/agents" : ->
 		try
 			agent =	 AM.create @body
-			@send AM.loadCaBundle(agent)
+			@send AM.loadCaBundle(agent.data)
 		catch error
 			console.log "Error:"+error
 			@response.send 400, error
 
-	@put "/agents/:id",auth, ->
+	@put "/agents/:id": ->
 		try
 			entry = AM.getAgent @params.id
 			if entry?
 				AM.validate @params.id, @body.id, @body
+				delete @body.bolt.ca if @body.bolt?.ca
 				@send AM.update @body.id, @body
 			else
 				@send 404
@@ -146,17 +156,18 @@ class AgentsManager
 			@send 404
 		@send 204 #Just updated, but no return content
 
-	@get "/agents/:id",auth, ->
+	@get "/agents/:id": ->
 		agent = AM.getAgent @params.id
+		console.log "Ravi - get agent found ", agent
 		if agent?
-			@send AM.loadCaBundle(agent)
+			@send AM.loadCaBundle(agent.data)
 		else
 			@send 404
 
-	@get "/agents/:id/bolt", auth, ->
+	@get "/agents/:id/bolt": ->
 		agent = AM.getAgent @params.id
 		if agent?
-			@send AM.loadCaBundle(agent).bolt
+			@send AM.loadCaBundle(agent.data).bolt
 		else
 			@send 404
 
