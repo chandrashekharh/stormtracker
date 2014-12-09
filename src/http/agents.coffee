@@ -159,7 +159,7 @@ class AgentsManager
 
 	@get "/agents/:id": ->
 		agent = AM.getAgent @params.id
-        #console.log "Ravi - get agent found ", agent
+        #console.log "get agent found ", agent
 		if agent?
 			@send AM.loadCaBundle(agent.data)
 		else
