@@ -54,7 +54,7 @@ class AgentsRegistry extends StormRegistry
 			if entry?
 				entry.saved = true
 				entry.id = key
-				console.log "loading key #{key} and val #{val}"
+                #console.log "loading key #{key} and val #{val}"
 				@add key, entry
 
 		@on 'removed', (entry) ->
@@ -140,7 +140,8 @@ class AgentsManager
 			if entry?
 				AM.validate @params.id, @body.id, @body
 				delete @body.bolt.ca if @body.bolt?.ca
-				@send AM.update @body.id, @body
+				resp =  AM.update @body.id, @body
+				@send resp.data
 			else
 				@send 404
 		catch error
@@ -158,7 +159,7 @@ class AgentsManager
 
 	@get "/agents/:id": ->
 		agent = AM.getAgent @params.id
-		console.log "Ravi - get agent found ", agent
+        #console.log "Ravi - get agent found ", agent
 		if agent?
 			@send AM.loadCaBundle(agent.data)
 		else
