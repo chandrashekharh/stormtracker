@@ -23,7 +23,7 @@ class StormTracker extends StormAgent
 		@CF.init()
 		@AM = new AgentsManager(@agentsdb,@CF.CM)
 		require("passport").use require("http/auth").BasicStrategy
-		global.agentsDB=@agentsdb.db
+		global.agentsDB=@agentsdb
 
 	run : (config) ->
 		super config

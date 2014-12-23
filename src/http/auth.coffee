@@ -6,14 +6,15 @@ restClient = new RestClient global.config.stormkeeper.url,global.config.stormkee
 BasicStrategy = require("passport-http").BasicStrategy
 query = require("dirty-query").query
 
+
 FindAgent = (stoken,serial) ->
-    try
-        agents = query global.agentsDB,{"stoken":stoken},{"serialkey":serial}
-    catch err
-        return null
-    if agents?
-        return agents[0]
-    return null
+    dlist = global.agentsDB.list()
+    if dlist
+        newdlist = dlist.filter (entry) =>
+            if entry and entry.data and entry.data.stoken is stoken and entry.data.serialkey is serial
+                return true
+    if newdlist?
+        return newdlist[0]
 
 exports.BasicStrategy = new BasicStrategy (username,password,done)->
     process.nextTick ()->

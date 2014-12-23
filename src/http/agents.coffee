@@ -66,7 +66,7 @@ class AgentsRegistry extends StormRegistry
 		entry = super key
 
 class AgentsManager
-	constructor : (db,certMangr)->
+	constructor : (db,certMangr) ->
 		@db = db
 		@stormsigner = global.config.stormsigner
 		@CM = certMangr
@@ -106,15 +106,19 @@ class AgentsManager
 	getAgent : (id) ->
 		@db.get id
 
-	getAgentBySerial : (serialKey) ->
-		agents = query @db.db, {"serialkey":serialKey}
 
-		if agents?
-			return agents[0]
+	getAgentBySerial : (serialKey) ->
+		dlist = @db.list()
+		if dlist
+			newdlist = dlist.filter (entry) =>
+				if entry and entry.data and entry.data.serialkey is serialKey
+					return true
+		if newdlist?
+			return newdlist[0]
+
 
 	deleteAgent : (id) ->
 		@db.remove id
-
 
 	loadCaBundle: (agent) ->
 		agent.bolt.ca =
@@ -172,12 +176,13 @@ class AgentsManager
 		else
 			@send 404
 
-	@get "/agents/serialkey/:key",auth, ->
+	@get "/agents/serialkey/:key", auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
 			@send {"id":agent.id,"serialkey":@params.key}
 		else
 			@send 404
+
 
 	@post "/agents/:id/csr", auth, ->
 		util.log "CSR for agent #{@params.id}"
