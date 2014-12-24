@@ -23,7 +23,7 @@ class StormTracker extends StormAgent
 		@CF.init()
 		@AM = new AgentsManager(@agentsdb,@CF.CM)
 		require("passport").use require("http/auth").BasicStrategy
-		global.agentsDB=@agentsdb.db
+		global.agentsDB=@agentsdb
 
 	run : (config) ->
 		super config
@@ -41,3 +41,5 @@ if require.main is module
 	storm = null # override during dev
 	agent = new StormTracker
 	agent.run storm
+	process.on 'uncaughtException' , (err) ->
+		agent.log 'ALERT.. caught exception', err, err.stack

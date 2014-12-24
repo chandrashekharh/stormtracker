@@ -13,12 +13,11 @@ class AgentsData extends StormData
 	agentSchema =
 		name : "Agent"
 		type : "object"
-		additionalProperties : {}
+		additionalProperties : true
 		properties :
 			id:		   {"type":"string","required":false}
 			stoken:	   {"type":"string","required":true}
-			serialkey: {"type":"string","required":false}
-			saved : {"type":"boolean","required":false}
+			serialkey: {"type":"string","required":true}
 			lastActivation : {"type":"string","required":false}
 			bolt:
 				type: "object"
@@ -54,7 +53,9 @@ class AgentsRegistry extends StormRegistry
 			entry = new AgentsData key, val
 			if entry?
 				entry.saved = true
-				@add key, val
+				entry.id = key
+                #console.log "loading key #{key} and val #{val}"
+				@add key, entry
 
 		@on 'removed', (entry) ->
 			entry.destroy() if entry.destroy?
@@ -65,36 +66,59 @@ class AgentsRegistry extends StormRegistry
 		entry = super key
 
 class AgentsManager
-	constructor : (db,certMangr)->
+	constructor : (db,certMangr) ->
 		@db = db
 		@stormsigner = global.config.stormsigner
 		@CM = certMangr
+
+	validate : (paramId, bodyId, body) ->
+		unless paramId == bodyId
+			throw new Error "id does not match with url"
+
+		try
+			entry = new AgentsData bodyId, body
+		catch err
+			throw new Error "invalid json data"
 
 	update : (id,agent) ->
 		_agent = @db.get id
 		if not _agent?
 			return null
+		else
+            if agent.data?.bolt?.ca?
+            	delete agent.data.bolt.ca
+		try
+			entry = new AgentsData _agent.id, agent
+			@db.update  _agent.id, entry
+		catch err
+			throw new Error "invalid json data"
 
-		if @validate agent
-			@db.add _agent.id, agent
 
 	create : (agent) ->
-		agent.id = uuid.v4()
-		@db.add agent.id, agent
-		return agent
+		agent.id?=uuid.v4()
+		try
+			entry = new AgentsData agent.id, agent
+			@db.add agent.id, entry
+			return entry
+		catch err
+			throw new Error "invalid json data"
 
 	getAgent : (id) ->
 		@db.get id
 
-	getAgentBySerial : (serialKey) ->
-		agents = query @db.db, {"serialkey":serialKey}
 
-		if agents?
-			return agents[0]
+	getAgentBySerial : (serialKey) ->
+		dlist = @db.list()
+		if dlist
+			newdlist = dlist.filter (entry) =>
+				if entry and entry.data and entry.data.serialkey is serialKey
+					return true
+		if newdlist?
+			return newdlist[0]
+
 
 	deleteAgent : (id) ->
-		@db.rm id
-
+		@db.remove id
 
 	loadCaBundle: (agent) ->
 		agent.bolt.ca =
@@ -109,17 +133,24 @@ class AgentsManager
 	@post "/agents" : ->
 		try
 			agent =	 AM.create @body
-			@send AM.loadCaBundle(agent)
+			@send AM.loadCaBundle(agent.data)
 		catch error
 			console.log "Error:"+error
 			@response.send 400, error
 
-	@put "/agents/:id",auth, ->
+	@put "/agents/:id": ->
 		try
-			if AM.validate @body
-				@send AM.update @body.id,@body
+			entry = AM.getAgent @params.id
+			if entry?
+				AM.validate @params.id, @body.id, @body
+				delete @body.bolt.ca if @body.bolt?.ca
+				resp =  AM.update @body.id, @body
+				@send resp.data
+			else
+				@send 404
 		catch error
-			@response.send 400, error
+			@response.status(400)
+			@response.send error: "#{error}"
 
 	@put "/agents/:id/status/:status" : ->
 		agent = @db.get @params.id
@@ -130,26 +161,28 @@ class AgentsManager
 			@send 404
 		@send 204 #Just updated, but no return content
 
-	@get "/agents/:id",auth, ->
+	@get "/agents/:id": ->
 		agent = AM.getAgent @params.id
+        #console.log "get agent found ", agent
 		if agent?
-			@send AM.loadCaBundle(agent)
+			@send AM.loadCaBundle(agent.data)
 		else
 			@send 404
 
-	@get "/agents/:id/bolt", auth, ->
+	@get "/agents/:id/bolt": ->
 		agent = AM.getAgent @params.id
 		if agent?
-			@send AM.loadCaBundle(agent).bolt
+			@send AM.loadCaBundle(agent.data).bolt
 		else
 			@send 404
 
-	@get "/agents/serialkey/:key",auth, ->
+	@get "/agents/serialkey/:key", auth, ->
 		agent = AM.getAgentBySerial @params.key
 		if agent?
 			@send {"id":agent.id,"serialkey":@params.key}
 		else
 			@send 404
+
 
 	@post "/agents/:id/csr", auth, ->
 		util.log "CSR for agent #{@params.id}"
@@ -165,9 +198,9 @@ class AgentsManager
 		else
 			@send 404
 
-	@del "/agents/:id", auth : ->
-		if (@db.get @params.id)?
-			@db.rm @params.id
+	@del "/agents/:id", ->
+		if (AM.getAgent @params.id)?
+			AM.deleteAgent @params.id
 			@send 204
 			return
 		@send 404
