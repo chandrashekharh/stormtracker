@@ -23,7 +23,8 @@
     },
     "devDependencies": {
 		"coffee-script": ">=1.3",
-		"mocha" : "1.18.x"
+		"mocha" : "*",
+                "chai" : "*"
 	},
     "optionalDependencies": {},
     "engines": {
@@ -59,7 +60,9 @@
 	}
     },
     "scripts": {
+	"test": "mocha test --compilers coffee:iced-coffee-script/register -R spec", 
 	"prepublish": "mkdir -p lib; coffee -o lib -c src",
+
 	"start": "node lib/stormtracker"
     },
     "contributors": [

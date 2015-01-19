@@ -1,7 +1,7 @@
 fs = require("fs")
 puts = require("util").debug
 inspect = require("util").inspect
-certgen = require("security/certgen")
+certgen = require('../security/certgen')
 
 
 init = (config,temp) ->

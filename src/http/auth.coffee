@@ -1,5 +1,5 @@
 passport = require("passport")
-RestClient = require("http/client").HttpClient
+RestClient = require('../http/client').HttpClient
 util = require("util")
 headers = {}
 restClient = new RestClient global.config.stormkeeper.url,global.config.stormkeeper.port

@@ -3,8 +3,8 @@ spawn = require("child_process").spawn
 fs = require("fs")
 puts = require("util").debug
 inspect = require("util").inspect
-Semaphore = require("util/concurrent").Semaphore
-ThreadBarrier = require("util/concurrent").ThreadBarrier
+Semaphore = require('../util/concurrent').Semaphore
+ThreadBarrier = require('../util/concurrent').ThreadBarrier
 
 exclusive = new Semaphore
 srlFile = "serial.srl"

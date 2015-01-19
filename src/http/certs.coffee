@@ -1,7 +1,7 @@
-certainly = require("security/certainly")
+certainly = require('../security/certainly')
 uuid = require("node-uuid")
-CertificateRegistry = require("security/certificate").CertificateRegistry
-auth = require("http/auth").authenticate
+CertificateRegistry = require('../security/certificate').CertificateRegistry
+auth = require('../http/auth').authenticate
 util = require "util"
 
 
