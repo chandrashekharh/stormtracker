@@ -18,12 +18,15 @@ CertificateFactory = require("../lib/http/certs").CertificateFactory
 
 describe "Testing Agents and certs Manager Functions", ->
     AM = CF = null
-    console.log "Hello"
     before ->
         agentsdb = new AgentsRegistry "#{global.config.datadir}/agents.db"
         certsdb  = new CertificateRegistry "#{global.config.datadir}/certs.db"
+        
         CF = new CertificateFactory(certsdb)
-        CF.init()
+        if "#Create the stormtracker root certificates", ->
+            result = CF.init()
+            expect(result).not.to.be.instanceof(Error)
+
         AM = new AgentsManager(agentsdb,CF.CM)
         it "Verify Agentmanager AM and CertificateFactory CF ", ->
             expect(AM,CF).not.to.be.instanceof(Error)
@@ -87,7 +90,7 @@ describe "Testing Agents and certs Manager Functions", ->
 
         it "SignCSR agents certs request", ->
             cabundle = csrRequest = [] 
-            util.log "CSR for agent #{staticdata.agentdata.id}"
+            util.log "CSR for agent-id #{staticdata.agentdata.id}"
             cert = AM.CM.blankCert("agent1@clearpathnet.com","email:copy","agent007@clearpathnet.com",7600,false)
             certainly.genKey cert,(err,certRequest)->
                 expect(certRequest).not.to.be.instanceof(Error)
@@ -117,13 +120,11 @@ describe "Testing Agents and certs Manager Functions", ->
                 expect(result).to.contain.key('daysValidFor','selfSigned','upstream','downstream','id')
                 expect(result).to.contain.key('privateKey','cert','signer','saved')
 
-        describe "Testing Certs Manager functions", ->
             it "Must get the signerbundle certs", ->
                 result = CF.CM.signerBundle 'stormtracker'
                 expect(result).not.to.be.instanceof(Error)
                 util.log 'CF.CM.signerbundle: '  + util.inspect result
         '''
-        describe "Must get the  list of certs", ->
             it "Must get the list of certs", ->
                 result = CF.CM.list 'stormtracker' 
                 expect(result).not.to.be.instanceof(Error)
@@ -150,8 +151,9 @@ describe "Testing Agents and certs Manager Functions", ->
                         expect(result).not.to.be.instanceof(Error)
                         done()
         '''
-        it "Delete agents data", ->
-            result = AM.deleteAgent staticdata.agentdata.id
-            expect(result).not.to.be.instanceof(Error)
-            util.log 'DELETE agentID:  ' + util.inspect staticdata.agentdata.id 
-
+    after ->
+        describe "Delete agents data", ->
+            it "Delete agents data", ->
+                result = AM.deleteAgent staticdata.agentdata.id
+                expect(result).not.to.be.instanceof(Error)
+                util.log 'DELETE agentID:  ' + util.inspect staticdata.agentdata.id
